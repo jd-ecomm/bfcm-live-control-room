@@ -49,5 +49,5 @@ Then `python3 tools/compute.py [YYYY-MM-DD]` and `python3 tools/build.py`. Fonts
 - Funnel: click a step -> split by device or traffic source (Shopify referrer_source), today vs LY to the same minute. Model key: fsplit.
 - Ticker (Dashboard view): click an item -> Live view with the product, hour, funnel split or spend detail open. Ticker items carry `go`.
 - Product rows -> product drill-down (landing-page funnel); fulfilment regions -> stores; KPI cards -> hourly view; chart notes collapse to short pills.
-- The page reloads itself every 10 minutes on GitHub Pages, except within 5 minutes of someone clicking or scrolling, so open drill-downs stay put.
 - Auto-refresh: tools/build.py writes data/version.json (a stamp of the built page). Every open page reads it once a minute with caching off and reloads itself when it changes, keeping the same view. Always commit data/version.json with index.html.
+- Refresh pulse (Ryan, 12 Nov 2026): when a page reloads itself for new data, a yellow glow rises from the bottom of the screen for about 3 seconds. It lives in the standalone cr-refresh script (sessionStorage flag cr_pulse set just before the reload). Test with `__crRefresh.pulse()` in the console. The header says when the next update is due (about :10 past the hour).
