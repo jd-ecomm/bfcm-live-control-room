@@ -169,6 +169,36 @@ section{padding-block:22px 2px}
 .agekey b{display:block;font-family:var(--display);font-size:26px;line-height:.85;color:var(--fg);margin-top:4px}
 .agekey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
 .ftab{margin-top:12px}
+/* drill-downs added 12 Nov 2026: hour, spend channel, funnel split, ticker jumps */
+.xd{margin-top:12px;border-color:var(--yellow);scroll-margin-top:70px}
+.xd-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.xd-h h3{margin:0;font-size:30px;line-height:.95;text-transform:uppercase}
+.xd-h .note{color:var(--fg3);font-size:11.5px;margin-top:8px;max-width:90ch}
+.xd-grid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:14px;margin-top:16px}
+.xd-sec{background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.xd-sec .lbl{margin-bottom:8px}
+.xl{display:grid;grid-template-columns:44px minmax(0,1fr) 78px;gap:10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px;color:inherit;text-decoration:none}
+.xl:last-child{border-bottom:0}
+.xl img,.xl .noimg{width:44px;height:44px;border-radius:8px;background:#fff;object-fit:contain;display:block}
+.xl .nm{font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.xl .bar{height:5px;border-radius:99px;background:var(--s3);margin-top:6px;overflow:hidden}.xl .bar i{display:block;height:100%;background:var(--yellow);border-radius:99px}
+.xl .v{text-align:right}.xl .v b{display:block;font-family:var(--display);font-size:22px;line-height:.9}.xl .v span{font-size:10.5px;color:var(--fg3)}
+a.xl:hover .nm{color:var(--yellow)}
+.xr{display:grid;grid-template-columns:110px minmax(0,1fr) 96px;gap:10px;align-items:center;font-size:12px;padding:6px 0}
+.xr .t{height:8px;border-radius:99px;background:var(--s3);position:relative;overflow:hidden}.xr .t i{position:absolute;inset:0 auto 0 0;background:var(--yellow);border-radius:99px}.xr .t u{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff;opacity:.7}
+.xr span:last-child{text-align:right;color:var(--fg2)}
+.xd .cbox{height:260px}
+.xd .pd-stats span b{display:inline;font-family:var(--body);font-size:11.5px;line-height:1.3;margin:0;text-transform:none}
+.xsend{display:inline-flex;align-items:center;gap:6px;background:var(--teal);color:#000;border-radius:99px;padding:4px 10px;font-size:11px;font-weight:700;margin:4px 6px 0 0}
+.chan .r.clk{cursor:pointer;border-radius:8px;margin:0 -6px;padding:4px 6px}.chan .r.clk:hover,.chan .r.clk.on{background:var(--s2)}
+.chan .r.clk span:first-child::after{content:" ▸";color:var(--yellow)}
+.fst{cursor:pointer;transition:background .15s}.fst:hover .nm,.fst.on .nm{color:var(--yellow)}.fst.on .pc{color:var(--yellow)}
+.ftab td.hi,.ftab th.hi{color:var(--yellow)}
+.ftab .bad{color:var(--alert)}.ftab .good{color:var(--teal)}
+#cRev{cursor:crosshair}
+.tick .mq span.it[data-go]{cursor:pointer}.tick .mq span.it[data-go]:hover{color:var(--fg)}
+.tick:hover .mq{animation-play-state:paused}
+@media(max-width:900px){.xd-grid{grid-template-columns:minmax(0,1fr)}.xr{grid-template-columns:84px minmax(0,1fr) 84px}}
 .ftab table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
 .ftab th{text-align:right;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);font-weight:700;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
 .ftab td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -342,8 +372,9 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
         <div class="seg"><button class="pill sm on" data-rm="cum">Running total</button><button class="pill sm" data-rm="hr">Revenue per hour</button></div>
       </div>
       <div class="cbox"><canvas id="cRev" aria-label="Total revenue by hour against target and last year"></canvas><div class="pulse" id="pulse"><b id="pulseT"></b></div></div>
-      <div class="legend"><span><i style="background:var(--yellow);height:4px;box-shadow:0 0 8px rgba(255,222,20,.7)"></i>Today</span><span><i class="dash"></i>Target (PRM, spread over last year's hours)</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span><i style="background:var(--teal)"></i>Email / SMS send</span><span><i style="background:var(--alert)"></i>Alert</span></div>
+      <div class="legend"><span><i style="background:var(--yellow);height:4px;box-shadow:0 0 8px rgba(255,222,20,.7)"></i>Today</span><span><i class="dash"></i>Target (PRM, spread over last year's hours)</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span><i style="background:var(--teal)"></i>Email / SMS send</span><span><i style="background:var(--alert)"></i>Alert</span><span style="color:var(--yellow);font-weight:700">Click any hour on the chart to open it</span></div>
     </div>
+    <div class="card xd" id="hdrill" hidden></div>
   </section>
 
   <section class="wrap">
@@ -358,12 +389,14 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
         <div class="card mer"><div class="lbl">Live MER · Shopify total sales ÷ paid spend</div><div class="v dsp num" id="mer-v"></div><div style="font-size:12.5px;color:var(--fg2);margin-top:8px" id="mer-n"></div><div style="margin-top:12px" id="mer-c"></div></div>
       </div>
     </div>
+    <div class="card xd" id="spdrill" hidden></div>
   </section>
 
   <section class="wrap">
     <div class="sh"><div><h2 class="dsp">Checkout funnel</h2><p id="funnote"></p></div></div>
     <div class="card"><div id="fl"></div>
-      <div class="legend"><span><i style="background:var(--yellow);height:8px"></i>Today so far</span><span><i style="border:1.5px dashed #fff;background:none;height:8px"></i>Same hours last year</span><span>The sessions bar is cut so the later stages stay readable</span></div></div>
+      <div class="legend"><span><i style="background:var(--yellow);height:8px"></i>Today so far</span><span><i style="border:1.5px dashed #fff;background:none;height:8px"></i>Same hours last year</span><span>The sessions bar is cut so the later stages stay readable</span><span style="color:var(--yellow);font-weight:700">Click a step to split it by device or traffic source</span></div></div>
+    <div class="card xd" id="fsdrill" hidden></div>
   </section>
 
   <section class="wrap">
@@ -509,8 +542,12 @@ const notesPlug = { id:'notes', afterDatasetsDraw(ch, a, o){ if(!o.list) return;
     c.fillStyle = col; c.beginPath(); if(c.roundRect) c.roundRect(left, y, w, hgt, hgt/2); else c.rect(left, y, w, hgt); c.fill();
     c.fillStyle = '#000'; c.textBaseline='middle'; c.fillText(label, left + fs*.7, y + hgt/2 + .5); });
   c.restore(); } };
+let selH = null;   // hour opened from the revenue chart (Live view only)
+const hourSel = { id:'hoursel', beforeDatasetsDraw(ch){ if(selH==null || ch.canvas.id!=='cRev') return; const {ctx:c, chartArea:ca, scales:{x}} = ch;
+  const a = x.getPixelForValue(selH), b = x.getPixelForValue(selH+1); c.save(); c.fillStyle='rgba(255,222,20,.10)'; c.fillRect(a, ca.top, b-a, ca.bottom-ca.top);
+  c.strokeStyle='rgba(255,222,20,.6)'; c.lineWidth=1; c.setLineDash([2,3]); c.strokeRect(a+.5, ca.top+.5, b-a-1, ca.bottom-ca.top-1); c.restore(); } };
 const nowShade = { id:'nowshade', beforeDatasetsDraw(ch, a, o){ if(o.x==null) return; const {ctx:c, chartArea:ca, scales:{x}} = ch; const px = x.getPixelForValue(o.x); c.save(); const g = c.createLinearGradient(px-80,0,px,0); g.addColorStop(0,'rgba(255,222,20,0)'); g.addColorStop(1,'rgba(255,222,20,.08)'); c.fillStyle=g; c.fillRect(px-80, ca.top, 80, ca.bottom-ca.top); c.restore(); } };
-Chart.register(glow, notesPlug, nowShade);
+Chart.register(glow, notesPlug, nowShade, hourSel);
 const grid = {color:'#1d1d1d', drawTicks:false};
 const xS = (fs=11) => ({type:'linear', min:0, max:24, grid:{display:false}, border:{color:'#2a2a2a'}, ticks:{stepSize:2, callback:v=>v===24?'':h12(v), color:C.fg3, padding:8, font:{size:fs}}});
 const yS = (fs=11) => ({beginAtZero:true, grid, border:{display:false}, ticks:{callback:v=>K$(v), padding:10, font:{size:fs}, maxTicksLimit:7}});
@@ -537,7 +574,10 @@ function revChart(canvas, mode, big, pulseEl, pulseT){
   // notes live outside the plot area, where Chart.js ignores clicks, so listen on the canvas itself (once per canvas)
   if(!canvas.$noteEv){ canvas.$noteEv = true;
     const at = ev => { const r = canvas.getBoundingClientRect(); return {x:ev.clientX-r.left, y:ev.clientY-r.top}; };
-    canvas.addEventListener('click', ev => { const ch = Chart.getChart(canvas); if(ch) toggleNote(ch, at(ev)); });
+    canvas.addEventListener('click', ev => { const ch = Chart.getChart(canvas); if(!ch) return; const e = at(ev); if(toggleNote(ch, e)) return;
+      // click an hour (Live chart): open that hour's detail underneath (Ryan, 12 Nov 2026)
+      if(!big){ const ca = ch.chartArea; if(e.x<ca.left || e.x>ca.right || e.y<ca.top-4 || e.y>ca.bottom+24) return;
+        const h = Math.max(0, Math.min(NOW, Math.floor(ch.scales.x.getValueForPixel(e.x)))); openHour(h); } });
     canvas.addEventListener('mousemove', ev => { const ch = Chart.getChart(canvas); if(!ch) return; const e = at(ev); canvas.style.cursor = (ch.$pills||[]).some(q => e.x>=q.x && e.x<=q.x+q.w && e.y>=q.y && e.y<=q.y+q.h) ? 'pointer' : 'default'; }); }
   return new Chart(canvas, {type:'line', data:{datasets:revDatasets(mode, big)}, options:{responsive:true, maintainAspectRatio:false, parsing:false, animation:{duration:big?0:600},
     interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:noteBand(M.notes, big?FS(.62):10.5), right:big?20:12}},
@@ -549,6 +589,43 @@ function revChart(canvas, mode, big, pulseEl, pulseT){
 let rm='cum', cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); window.cRevRef = cRev;
 $('rnote').textContent = `Shopify total sales (orders less discounts and returns, plus shipping and tax). Target is the PRM daily target of ${K$(M.target_net)} net × ${M.ratio.toFixed(3)}, this year's total-to-net ratio over the last 28 days.`;
 document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { rm=b.dataset.rm; document.querySelectorAll('[data-rm]').forEach(x=>x.classList.toggle('on',x===b)); cRev.destroy(); cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); window.cRevRef = cRev; });
+// ---------- hour drill-down: click an hour on the revenue chart (Ryan, 12 Nov 2026)
+const UTM_N = {cpc:'Paid search', cpm:'Paid social', PaidSocial:'Paid social', paid:'Paid', email:'Email', sms:'SMS', SMS:'SMS', text:'SMS', organic:'Organic', none:'No UTM', referral:'Referral', affiliate:'Affiliate', social:'Social', 'Sub Networks':'Sub networks', zalo:'Zalo'};
+const n0 = v => Math.round(v||0).toLocaleString('en-CA');
+const tile = (l, v, s) => `<div><div class="lbl">${l}</div><b class="num">${v}</b><span>${s}</span></div>`;
+function openHour(h){
+  selH = h; cRev.draw(); const el = $('hdrill'); el.hidden = false;
+  const prog = h===NOW, fr = prog ? Math.max(.01, M.now_m/60) : 1;
+  const tot = H.total[h], tg = H.target[h]*fr, ly = H.ly_total[h]*fr;
+  const ord = H.orders[h], lyo = H.ly_orders[h]*fr;
+  const aov = ord ? (H.gross[h]+(H.disc[h]||0))/ord : null, lyAov = H.ly_orders[h] ? H.ly_total[h]/H.ly_orders[h] : null;
+  const ses = H.sessions[h], cv = ses ? H.cc[h]/ses : 0, lycv = H.ly_sessions[h] ? H.ly_cc[h]/H.ly_sessions[h] : 0;
+  const nt = M.nrh.today, nl = M.nrh.ly, shr = (a,b) => a>0 && b>0 ? a/(a+b) : null, nsh = shr(nt.New[h], nt.Returning[h]), lsh = shr(nl.New[h], nl.Returning[h]);
+  const top = M.hourtop[h]||[], hg = H.gross[h]||1;
+  const U = M.utm.today, UL = M.utm.ly, keys = [...new Set(Object.keys(U).concat(Object.keys(UL)))].map(k=>({k, t:(U[k]||[])[h]||0, l:((UL[k]||[])[h]||0)*fr})).filter(x=>x.t||x.l).sort((a,b)=>b.t-a.t).slice(0,7);
+  const mx = Math.max(1, ...keys.map(x=>Math.max(x.t,x.l)));
+  const sends = M.notes.filter(n=>n.type==='send' && Math.floor(n.h)===h);
+  el.innerHTML = `<div class="xd-h"><div><div class="lbl">Hour detail${prog?' · in progress':''}</div><h3 class="dsp">${h12(h)} to ${h12(h+1)}</h3>
+      <div class="note">${prog?`So far this hour (to ${upd}); last year and target are pro-rated to the same minutes. `:''}Compared with the same hour on ${lyTxt}. Use the arrows to step through the day.</div></div>
+      <div class="seg"><button class="pill sm" data-hn="-1" ${h<=0?'disabled':''} aria-label="Previous hour">‹ ${h>0?h12(h-1):''}</button><button class="pill sm" data-hn="1" ${h>=NOW?'disabled':''} aria-label="Next hour">${h<NOW?h12(h+1):''} ›</button><button class="pill sm closeb" data-hx aria-label="Close the hour detail">✕ Close</button></div></div>
+    <div class="pd-stats">${[
+      tile('Total sales', K$(tot), `${arrow(dl(tot,tg),'vs target')} · ${arrow(dl(tot,ly))}`),
+      tile('Orders', n0(ord), arrow(dl(ord,lyo))),
+      tile('AOV', aov?'$'+Math.round(aov):'–', arrow(aov&&lyAov?dl(aov,lyAov):null)),
+      tile('Conversion', pct(cv,2), `${n0(ses)} sessions · ${pts(cv,lycv)}`),
+      tile('New customers', nsh==null?'–':pct(nsh,0), nsh==null||lsh==null?'share of sales':`share of sales · ${pts(nsh,lsh)}`)].join('')}</div>
+    <div class="xd-grid">
+      <div class="xd-sec"><div class="lbl">Top sellers this hour · sales before returns</div>${top.length?top.map(it=>`<a class="xl" href="https://www.jdsports.ca/products/${encodeURIComponent(it.h||'')}" target="_blank" rel="noopener">${it.img?`<img src="${esc(it.img)}" alt="" loading="lazy">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(it.t)}</div><div class="bar"><i style="width:${Math.min(100,it.g/hg*100)}%"></i></div></div><div class="v"><b>${K$(it.g)}</b><span>${it.u} units · ${pct(it.g/hg,0)}</span></div></a>`).join(''):'<div style="color:var(--fg3);font-size:12px">No product sales recorded in this hour.</div>'}</div>
+      <div class="xd-sec"><div class="lbl">Sessions by UTM medium · white tick = last year</div>${keys.map(x=>`<div class="xr"><span>${esc(UTM_N[x.k]||x.k)}</span><div class="t"><i style="width:${x.t/mx*100}%"></i><u style="left:${x.l/mx*100}%"></u></div><span><b style="color:var(--fg)">${n0(x.t)}</b> ${x.l?`<b class="${x.t>=x.l?'up':'down'}">${x.t>=x.l?'+':''}${pct(x.t/x.l-1,0)}</b>`:''}</span></div>`).join('')}
+        ${sends.length?`<div class="lbl" style="margin-top:14px">Sends this hour</div>${sends.map(n=>`<span class="xsend">${esc(n.label)}</span>`).join('')}`:''}
+        <div style="font-size:11px;color:var(--fg3);margin-top:12px">Returns posted this hour: ${D$(-H.returns[h])}. Discounts: ${D$(-(H.disc[h]||0))}.</div></div>
+    </div>`;
+  el.querySelectorAll('[data-hn]').forEach(b => b.onclick = e => { e.stopPropagation(); openHour(Math.max(0, Math.min(NOW, h + +b.dataset.hn))); });
+  el.querySelector('[data-hx]').onclick = e => { e.stopPropagation(); closeHour(); };
+  el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function closeHour(){ selH = null; $('hdrill').hidden = true; cRev.draw(); }
+
 
 // ---------- spend (lines only)
 let chn='total', smode='cum', cSp;
@@ -582,9 +659,9 @@ $('spnote').textContent = `Google from the JD Ads hourly sheet (last write ${SP.
 $('sp-v').textContent = D$(SP.so_far);
 const sMax = Math.max(SP.budget_day, SP.forecast)*1.05;
 $('sp-fill').style.width = Math.min(100, SP.so_far/sMax*100)+'%'; $('sp-fc').style.left = Math.min(100, SP.forecast/sMax*100)+'%';
-const chRow = (n, v, b) => `<div class="r"><span>${n}</span><div class="t"><i style="width:${Math.min(100, v/(b||1)*100)}%"></i></div><span><b style="color:var(--fg)">${K$(v)}</b> / ${K$(b)}</span></div>`;
-$('chan').innerHTML = chRow('Google', SP.g_so_far, SP.budget_g) + chRow('Meta', SP.m_so_far, SP.budget_m) + chRow('Shop + Pin', SP.fixed_now, SP.fixed_day) +
-  `<div style="font-size:12px;color:var(--fg2);margin-top:4px">${pct(SP.so_far/SP.budget_day,0)} of the ${D$(SP.budget_day)} working plan. Forecast finish <b style="color:var(--fg)">${D$(SP.forecast)}</b>.</div>`;
+const chRow = (n, v, b, k) => `<div class="r${k?' clk':''}" ${k?`data-sc="${k}" role="button" tabindex="0" title="Open ${n} campaigns and ROAS by hour"`:''}><span>${n}</span><div class="t"><i style="width:${Math.min(100, v/(b||1)*100)}%"></i></div><span><b style="color:var(--fg)">${K$(v)}</b> / ${K$(b)}</span></div>`;
+$('chan').innerHTML = chRow('Google', SP.g_so_far, SP.budget_g, 'google') + chRow('Meta', SP.m_so_far, SP.budget_m, 'meta') + chRow('Shop + Pin', SP.fixed_now, SP.fixed_day) +
+  `<div style="font-size:12px;color:var(--fg2);margin-top:4px">${pct(SP.so_far/SP.budget_day,0)} of the ${D$(SP.budget_day)} working plan. Forecast finish <b style="color:var(--fg)">${D$(SP.forecast)}</b>. Click Google or Meta for campaigns and ROAS by hour.</div>`;
 // MER vs last year (Ryan, 12 Nov 2026: compare with last year's MER, not the 16x floor).
 // Last year only has Google + Meta spend, so the comparison uses today's Google + Meta MER (like for like).
 const merGM = K.spend[0] ? K.total[0]/K.spend[0] : null, merLY = MER.ly;
@@ -592,6 +669,52 @@ const merUp = merGM!=null && merLY!=null && merGM >= merLY, merD = (merGM!=null 
 $('mer-v').innerHTML = `<span class="${merUp?'up':'down'}">${MER.live.toFixed(1)}x</span>`;
 $('mer-n').innerHTML = `Total sales ${K$(MER.rev_so_far)} ÷ spend ${K$(SP.so_far)}. On Google + Meta only: <b>${merGM!=null?merGM.toFixed(1)+'x':'–'}</b> vs <b>${merLY!=null?merLY.toFixed(1)+'x':'–'}</b> last year at this point. Forecast finish <b>${MER.forecast.toFixed(1)}x</b>.`;
 $('mer-c').innerHTML = merD==null ? '' : merD >= .05 ? `<span class="chip good">Ahead of last year · +${(merD*100).toFixed(0)}%</span>` : merD > -.05 ? '<span class="chip mid">In line with last year</span>' : `<span class="chip mid">Behind last year · ${(merD*100).toFixed(0)}%</span>`;
+// ---------- spend channel drill-down: campaigns and ROAS by hour (Ryan, 12 Nov 2026)
+let spOpen = null, cSpd;
+const CP = M.camp || {};
+function openSpend(chx){
+  if(spOpen===chx){ closeSpend(); return; } spOpen = chx;
+  document.querySelectorAll('.chan .r.clk').forEach(r=>r.classList.toggle('on', r.dataset.sc===chx));
+  const g = chx==='google', el = $('spdrill'); el.hidden = false;
+  const sp = g ? H.google : H.meta, spL = g ? H.ly_google : H.ly_meta, v = g ? CP.gv||[] : CP.mv||[], vL = g ? CP.gvl||[] : CP.mvl||[];
+  let n = 0; for(let i=0;i<24;i++) if(v[i]!=null && i<=NOW) n = i+1;   // hours with value data
+  const sSp = sum(sp, n), sV = sum(v.map(x=>x||0), n), sSpL = sum(spL, n), sVL = sum(vL.map(x=>x||0), n);
+  const roas = sSp ? sV/sSp : null, roasL = sSpL ? sVL/sSpL : null;
+  const bud = g ? SP.budget_g : SP.budget_m, so = g ? SP.g_so_far : SP.m_so_far;
+  const rows = (g ? CP.google : CP.meta) || [];
+  const live = rows.filter(r=>r.sp>0);
+  const usedBar = r => r.bud ? `<div style="display:flex;align-items:center;gap:8px;justify-content:flex-end"><span>${pct(r.sp/r.bud,0)} of ${K$(r.bud)}</span><span style="width:60px;height:6px;border-radius:99px;background:var(--s3);overflow:hidden;display:inline-block"><i style="display:block;height:100%;width:${Math.min(100,r.sp/r.bud*100)}%;background:${r.sp/r.bud>(NOWX/24)*1.25?'var(--alert)':'var(--yellow)'}"></i></span></div>` : '<span style="color:var(--fg3)">no daily budget</span>';
+  const rs = x => x==null ? '–' : x.toFixed(2)+'x';
+  const tbl = g ? `<thead><tr><th>Campaign</th><th>Type</th><th>Spend today</th><th>Budget used</th><th>ROAS today</th><th>Normal ROAS</th><th>LY spend</th><th>LY ROAS</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.n)}</td><td>${esc(r.ch)}</td><td>${r.sp?D$(r.sp):'<span style="color:var(--fg3)">$0</span>'}</td><td>${usedBar(r)}</td><td class="${r.roas!=null&&r.norm_roas&&r.roas<r.norm_roas*.5?'bad':''}">${rs(r.roas)}</td><td>${rs(r.norm_roas)}</td><td>${r.sp_ly?D$(r.sp_ly):'–'}</td><td>${rs(r.roas_ly)}</td></tr>`).join('')}</tbody>`
+    : `<thead><tr><th>Campaign</th><th>Spend today</th><th>Daily budget used</th><th>Purchases</th><th>Purchase value</th><th>ROAS today</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${esc(r.n)}</td><td>${D$(r.sp)}</td><td>${usedBar(r)}</td><td>${r.buys==null?'–':n0(r.buys)}</td><td>${D$(r.rev||0)}</td><td>${rs(r.roas)}</td></tr>`).join('')}</tbody>`;
+  el.innerHTML = `<div class="xd-h"><div><div class="lbl">Spend channel detail</div><h3 class="dsp">${g?'Google Ads':'Meta'} · today</h3>
+      <div class="note">${g?`Campaigns from the JD Ads intraday sheet (campaign_pace, through ${(rows[0]||{}).thru!=null?h12(rows[0].thru+1):'the last sheet write'}). Google conversions post a few hours late, so today's ROAS reads low until they land; "Normal ROAS" is the sheet's usual figure for this point in the day.`:'Campaigns from Ads Manager, today so far, platform-attributed purchase value (each campaign\'s own attribution setting).'} ROAS by hour = platform conversion value ÷ spend in that hour.</div></div>
+      <div class="seg"><button class="pill sm ${g?'on':''}" data-sx="google">Google</button><button class="pill sm ${g?'':'on'}" data-sx="meta">Meta</button><button class="pill sm closeb" data-sxx aria-label="Close the channel detail">✕ Close</button></div></div>
+    <div class="pd-stats">${[
+      tile('Spend so far', K$(so), `${pct(so/(bud||1),0)} of ${K$(bud)} budget`),
+      tile('Conversion value', K$(sV), `platform-reported, ${n?'to '+h12(n):'no hours yet'}`),
+      tile('ROAS so far', rs(roas), roas!=null&&roasL?`${arrow(dl(roas,roasL))} (${rs(roasL)})`:'same hours last year'),
+      tile('Spend vs LY', K$(sum(sp, DONE)), arrow(dl(sum(sp,DONE), sum(spL,DONE)),'vs LY same hours')),
+      tile('Campaigns spending', n0(live.length), `${n0(rows.length)} listed`)].join('')}</div>
+    <div class="cbox" style="margin-top:14px"><canvas aria-label="Spend and ROAS by hour"></canvas></div>
+    <div class="legend"><span><i style="background:rgba(255,222,20,.45);height:8px"></i>Spend per hour today</span><span><i style="background:var(--yellow);height:4px"></i>ROAS per hour today</span><span><i style="background:var(--fg3)"></i>ROAS per hour last year</span></div>
+    <div class="ftab"><div class="sw"><table>${tbl}</table></div></div>`;
+  if(cSpd) cSpd.destroy();
+  const ro = (vv, ss, upto) => vv.map((x,i)=>({x:i+.5, y: ss[i] && x!=null ? x/ss[i] : null})).filter((p,i)=>i<upto && p.y!=null);
+  cSpd = new Chart(el.querySelector('canvas'), {data:{datasets:[
+      {type:'bar', label:'Spend', data:sp.map((y,i)=>({x:i+.5,y})).filter((p,i)=>i<=NOW), backgroundColor:'rgba(255,222,20,.28)', borderRadius:4, barPercentage:.9, categoryPercentage:1, yAxisID:'y'},
+      {type:'line', label:'ROAS today', data:ro(v, sp, n), borderColor:C.y, borderWidth:3, pointRadius:3, pointBackgroundColor:C.y, tension:.3, glow:12, yAxisID:'y2'},
+      {type:'line', label:'ROAS last year', data:ro(vL, spL, 24), borderColor:C.fg3, borderWidth:1.8, pointRadius:0, tension:.3, yAxisID:'y2'}]},
+    options:{responsive:true, maintainAspectRatio:false, parsing:false, interaction:{mode:'nearest', axis:'x', intersect:false},
+      scales:{x:xS(), y:yS(), y2:{position:'right', beginAtZero:true, grid:{display:false}, border:{display:false}, ticks:{callback:v=>v+'x', padding:8, maxTicksLimit:6}}},
+      plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>h12(Math.floor(it[0].parsed.x))+' to '+h12(Math.floor(it[0].parsed.x)+1), label:it=>' '+it.dataset.label+': '+(it.dataset.yAxisID==='y2'?it.parsed.y.toFixed(2)+'x':D$(it.parsed.y))}}}}});
+  el.querySelectorAll('[data-sx]').forEach(b => b.onclick = e => { e.stopPropagation(); if(b.dataset.sx!==spOpen){ spOpen=null; openSpend(b.dataset.sx); } });
+  el.querySelector('[data-sxx]').onclick = e => { e.stopPropagation(); closeSpend(); };
+  el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function closeSpend(){ spOpen = null; $('spdrill').hidden = true; if(cSpd){ cSpd.destroy(); cSpd = null; } document.querySelectorAll('.chan .r.clk').forEach(r=>r.classList.remove('on')); }
+document.querySelectorAll('.chan .r.clk').forEach(r => { r.onclick = () => openSpend(r.dataset.sc); r.onkeydown = e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openSpend(r.dataset.sc); } }; });
+
 
 
 
@@ -621,6 +744,40 @@ function funnelViz(i, small){
       ${funnelViz(i,false)}</div>`; }).join('')}</div>`;
   $('funnote').textContent = `Day so far, to ${upd}, laid out like Shopify's conversion breakdown: each stage as a share of all sessions. The dashed outline is the same hours last year; the pill under each stage is how many from the step before carried on.`;
 })();
+// ---------- funnel split: click a step to break it down by device or traffic source (Ryan, 12 Nov 2026)
+let fsOpen = null;
+const SEG_N = {mobile:'Mobile', desktop:'Desktop', tablet:'Tablet', other:'Other', direct:'Direct', search:'Search', social:'Social', email:'Email', paid:'Paid', unknown:'Unknown', invalid:'Invalid'};
+function openSplit(i, dim){
+  dim = dim || (fsOpen && fsOpen.dim) || 'dev';
+  if(fsOpen && fsOpen.i===i && fsOpen.dim===dim && !openSplit.force){ closeSplit(); return; } openSplit.force = false;
+  fsOpen = {i, dim}; document.querySelectorAll('.fst').forEach((x,j)=>x.classList.toggle('on', j===i));
+  const el = $('fsdrill'); el.hidden = false;
+  const FSd = (M.fsplit||{})[dim] || {today:{}, ly:{}}, T = FSd.today, L = FSd.ly;
+  const keys = Object.keys(T).concat(Object.keys(L).filter(k=>!T[k])).filter(k => (T[k]||[0])[0] >= 20 || (L[k]||[0])[0] >= 20).sort((a,b)=>(T[b]||[0])[0]-(T[a]||[0])[0]);
+  const totT = Object.values(T).reduce((a,v)=>a+v[0],0)||1, totL = Object.values(L).reduce((a,v)=>a+v[0],0)||1;
+  const rate = (a, j) => a && a[0] ? (j ? a[j]/a[0] : a[0]) : null;   // step j as a share of sessions (sessions: the count)
+  const val = (a, tot) => i===0 ? (a ? a[0]/tot : null) : rate(a, i);
+  const vals = keys.map(k => ({k, t:val(T[k], totT), l:val(L[k], totL)}));
+  const mx = Math.max(.0001, ...vals.map(x=>Math.max(x.t||0, x.l||0)));
+  const stepN = ST[i][1], has = keys.length>0;
+  el.innerHTML = `<div class="xd-h"><div><div class="lbl">Funnel split · day so far</div><h3 class="dsp">${stepN} by ${dim==='dev'?'device':'traffic source'}</h3>
+      <div class="note">${i===0?'Share of all sessions':'Share of sessions that reached this step'} for each ${dim==='dev'?'device type':'traffic source (Shopify referrer source)'}, today to ${upd} vs ${lyTxt} to the same time. Sessions include some automated traffic, which lands mostly as desktop and direct.</div></div>
+      <div class="seg"><button class="pill sm ${dim==='dev'?'on':''}" data-fd="dev">Device</button><button class="pill sm ${dim==='ref'?'on':''}" data-fd="ref">Traffic source</button>
+        ${ST.map((s_,j)=>`<button class="pill sm ${j===i?'on':''}" data-fj="${j}">${s_[1]}</button>`).join('')}<button class="pill sm closeb" data-fx aria-label="Close the funnel split">✕ Close</button></div></div>
+    ${has?`<div class="xd-sec" style="margin-top:14px"><div class="lbl">${i===0?'Share of sessions':stepN+' rate'} · white tick = last year</div>${vals.map(x=>`<div class="xr"><span>${esc(SEG_N[x.k]||x.k)}</span><div class="t"><i style="width:${(x.t||0)/mx*100}%"></i>${x.l!=null?`<u style="left:${x.l/mx*100}%"></u>`:''}</div><span><b style="color:var(--fg)">${pct(x.t, i===0?0:2)}</b> ${x.t!=null&&x.l!=null?`<b class="${x.t>=x.l?'up':'down'}">${x.t>=x.l?'+':'−'}${Math.abs((x.t-x.l)*100).toFixed(i===0?0:2)}</b>`:''}</span></div>`).join('')}</div>
+    <div class="ftab"><div class="sw"><table><thead><tr><th>${dim==='dev'?'Device':'Source'}</th><th class="${i===0?'hi':''}">Sessions</th><th>vs LY</th>${ST.slice(1).map((s_,j)=>`<th class="${j+1===i?'hi':''}">${s_[1]}</th>`).join('')}<th>${i?stepN+' vs LY':'Share vs LY'}</th></tr></thead><tbody>
+      ${keys.map(k=>{ const a=T[k]||[0,0,0,0], b=L[k]; const d = i===0 ? (b ? a[0]/totT - b[0]/totL : null) : (b && b[0] ? rate(a,i)-rate(b,i) : null);
+        return `<tr><td>${esc(SEG_N[k]||k)}</td><td class="${i===0?'hi':''}">${n0(a[0])}</td><td>${b&&b[0]?`<span class="${a[0]>=b[0]?'good':'bad'}">${a[0]>=b[0]?'+':''}${pct(a[0]/b[0]-1,0)}</span>`:'–'}</td>${[1,2,3].map(j=>`<td class="${j===i?'hi':''}">${pct(rate(a,j),2)}</td>`).join('')}<td>${d==null?'–':`<span class="${d>=0?'good':'bad'}">${d>=0?'+':'−'}${Math.abs(d*100).toFixed(2)} pts</span>`}</td></tr>`; }).join('')}
+    </tbody></table></div></div>` : '<div style="color:var(--fg3);margin-top:14px">The device and traffic source split arrives with the next hourly update.</div>'}`;
+  el.querySelectorAll('[data-fd]').forEach(b => b.onclick = e => { e.stopPropagation(); openSplit.force = true; openSplit(fsOpen.i, b.dataset.fd); });
+  el.querySelectorAll('[data-fj]').forEach(b => b.onclick = e => { e.stopPropagation(); openSplit.force = true; openSplit(+b.dataset.fj, fsOpen.dim); });
+  el.querySelector('[data-fx]').onclick = e => { e.stopPropagation(); closeSplit(); };
+  el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+function closeSplit(){ fsOpen = null; $('fsdrill').hidden = true; document.querySelectorAll('.fst').forEach(x=>x.classList.remove('on')); }
+document.querySelectorAll('.fst').forEach((x,j) => { x.setAttribute('role','button'); x.tabIndex = 0; x.title = 'Split by device or traffic source';
+  x.onclick = () => openSplit(j); x.onkeydown = e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openSplit(j); } }; });
+
 
 // ---------- products
 const stock = p => p.stock==='out' ? '<span class="flag out">Out of stock</span>' : p.stock==='low' ? `<span class="flag low">Low stock · ${p.inv}</span>` : '';
@@ -628,6 +785,7 @@ const url = p => 'https://www.jdsports.ca/products/'+encodeURIComponent(p.h||'')
 const vsLy = p => p.ly ? `<b class="${p.gross>=p.ly?'up':'down'}">${p.gross>=p.ly?'+':''}${pct(p.gross/p.ly-1,0)}</b><span>vs LY ${K$(p.ly)}</span>` : `<b class="yel">New</b><span>no sales LY</span>`;
 $('top').innerHTML = P.top.map((p,i) => `<div class="trow" data-pl="top" data-pi="${i}" role="button" tabindex="0"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> · ${p.units} units</span>${stock(p)}</div></div><div class="g">${vsLy(p)}</div></div>`).join('');
 $('trend').innerHTML = P.trending.length ? P.trending.map((p,i)=>`<div class="trow" data-pl="trending" data-pi="${i}" role="button" tabindex="0"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> today · 7-day avg ${p.avg7?K$(p.avg7):'$0'}</span>${stock(p)}</div></div><div class="g">${p.g==null?'<b class="yel">New</b><span>little or no sales in the last 7 days</span>':`<b class="up">+${(p.g*100).toFixed(0)}%</b><span>vs 7-day avg</span>`}</div></div>`).join('') : '<div class="card" style="color:var(--fg3)">Nothing meets the minimum rules yet today.</div>';
+if((P.extra||[]).length) $('trend').insertAdjacentHTML('beforeend', P.extra.map((p,i)=>`<div class="trow" data-pl="extra" data-pi="${i}" hidden></div>`).join(''));
 $('trnote').textContent = `Sales today so far vs each product's average for the previous 7 days to the same time of day (${upd}). Minimum rules: ${P.rules.min_units}+ units and $${P.rules.min_sales}+ today, $${P.rules.min_avg7}+ 7-day average. If fewer than 10 qualify, the rest are the biggest sellers with little or nothing in the last 7 days.`;
 
 // product drill-down: today's sales by hour vs the same day last year, plus the product page's own funnel
@@ -739,7 +897,7 @@ function screen(){
   $('s-pace').innerHTML = ''; document.querySelectorAll('#live .grid3 > .card').forEach(c => $('s-pace').appendChild(strip(c.cloneNode(true))));
   $('s-kpis').innerHTML = ''; document.querySelectorAll('#kpis > .kpi').forEach(c => { const n = strip(c.cloneNode(true)); n.classList.remove('on'); delete n.dataset.k; $('s-kpis').appendChild(n); });
   drawScreenChart();
-  const items = M.ticker.map(t=>`<span class="it ${t.tone}"><b>${esc(t.k)}</b>${t.img?`<img src="${t.img}" alt="">`:''}${esc(t.txt)}</span>`).join('');
+  const items = M.ticker.map(t=>`<span class="it ${t.tone}" ${t.go?`data-go="${esc(t.go)}" title="Open in the Live view"`:''}><b>${esc(t.k)}</b>${t.img?`<img src="${t.img}" alt="">`:''}${esc(t.txt)}</span>`).join('');
   $('s-mq').innerHTML = items + items;   // doubled so the loop is seamless
   $('s-mq').style.setProperty('--mqd', Math.max(40, M.ticker.reduce((a,t)=>a+t.txt.length,0)*.28)+'s');
   clearInterval(rot); rot = setInterval(() => { srm = srm==='cum'?'hr':'cum'; drawScreenChart(); }, 45000);
@@ -747,6 +905,21 @@ function screen(){
 function drawScreenChart(){ if(sChart) sChart.destroy(); sChart = revChart($('cScr'), srm, true, $('spulse'), $('spulseT')); window.sChartRef = sChart;
   document.querySelectorAll('[data-srm]').forEach(x=>x.classList.toggle('on', x.dataset.srm===srm)); $('s-ct').textContent = srm==='cum' ? 'Revenue pacing · running total' : 'Revenue per hour'; }
 document.querySelectorAll('[data-srm]').forEach(b => b.onclick = () => { srm=b.dataset.srm; drawScreenChart(); });
+
+// ticker click: jump to the Live view and open what the item is about (Ryan, 12 Nov 2026)
+function jump(go){
+  if(go==='rev'){ $('cRev').closest('.card').scrollIntoView({behavior:'smooth'}); openHour(Math.max(0, DONE-1)); return; }
+  if(go==='funnel'){ openSplit.force = true; openSplit(3, 'dev'); return; }
+  if(go==='funnel:ref'){ openSplit.force = true; openSplit(3, 'ref'); return; }
+  if(go==='spend'){ spOpen = null; openSpend('google'); return; }
+  if(go==='products'){ $('top').scrollIntoView({behavior:'smooth'}); return; }
+  if(go.startsWith('p:')){ const id = go.slice(2);
+    const row = [...document.querySelectorAll('.trow')].find(r => { const l = P[r.dataset.pl]; return l && l[+r.dataset.pi] && l[+r.dataset.pi].id===id; });
+    if(row){ if(pdOpen) closePd(); openPd(row); } else $('top').scrollIntoView({behavior:'smooth'}); }
+}
+$('s-mq').addEventListener('click', e => { const it = e.target.closest('[data-go]'); if(!it) return; const go = it.dataset.go;
+  location.hash = 'live'; setTimeout(() => jump(go), 120); });
+document.addEventListener('keydown', e => { if(e.key!=='Escape') return; if(selH!=null) closeHour(); if(spOpen) closeSpend(); if(fsOpen) closeSplit(); });
 
 // tighten the display font's wide comma
 function commas(){ document.querySelectorAll('.dsp').forEach(el => { if(el.closest('svg')) return; el.innerHTML = el.innerHTML.replace(/(\d),(\d)/g,'$1<span class="cm">,</span>$2'); }); }
@@ -759,6 +932,8 @@ window.addEventListener('hashchange', () => view(location.hash.slice(1)));
 view(location.hash.slice(1)||'live');
 commas();
 setInterval(() => { if(!$('screen').hidden) clock(); }, 20000);
-if(/github\.io$/.test(location.hostname)) setInterval(() => { if(!document.hidden) location.reload(); }, 10*60*1000);
+// self-refresh on GitHub Pages every 10 minutes, but not while someone has used the page in the last 5 minutes (drill-downs stay open)
+let lastUse = 0; ['click','keydown','wheel','touchstart'].forEach(ev => addEventListener(ev, () => { lastUse = Date.now(); }, {passive:true}));
+if(/github\.io$/.test(location.hostname)) setInterval(() => { if(!document.hidden && Date.now() - lastUse > 5*60*1000) location.reload(); }, 10*60*1000);
 })();
 </script>

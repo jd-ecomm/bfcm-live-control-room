@@ -19,7 +19,7 @@
     return {c, r: d.tableData.rows.map(row => c.map(k => row[k]))};
   };
   const day = (n) => { const t = new Date(Date.now() - 7 * 3600e3 - n * 864e5); return t.toISOString().slice(0, 10); };
-  window.__pull = async ({ly, p7 = false, lyFill = false, known = []} = {}) => {
+  window.__pull = async ({ly, p7 = false, lyFill = false, lyFun = false, known = [], named = []} = {}) => {
     const T = 'SINCE today UNTIL today';
     const o = {};
     o.tdT = await __ql(`FROM sales SHOW total_sales, net_sales, gross_sales, discounts, returns, orders GROUP BY hour ${T} ORDER BY hour`);
@@ -30,6 +30,17 @@
     // landing-page funnel today, for the product drill-down (Ryan, 12 Nov 2026); non-fatal if ShopifyQL rejects it
     try { o.lp = await __ql(`FROM sessions SHOW sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout GROUP BY landing_page_path ${T} ORDER BY sessions DESC LIMIT 5000`); }
     catch (e) { o.lpErr = String(e.message || e).slice(0, 300); }
+    // funnel split by device and by traffic source, by hour (Ryan, 12 Nov 2026: click a funnel step); non-fatal
+    const FS = 'SHOW sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout';
+    try { o.fdev = await __ql(`FROM sessions ${FS} GROUP BY hour, session_device_type ${T} ORDER BY hour LIMIT 1000`);
+          o.fref = await __ql(`FROM sessions ${FS} GROUP BY hour, referrer_source ${T} ORDER BY hour LIMIT 1000`); }
+    catch (e) { o.fErr = String(e.message || e).slice(0, 300); }
+    if (lyFun && ly) {   // same split on the LY day, once per day (cached in shopify_raw3.json)
+      const L = `SINCE ${ly} UNTIL ${ly}`;
+      try { o.fdevL = await __ql(`FROM sessions ${FS} GROUP BY hour, session_device_type ${L} ORDER BY hour LIMIT 1000`);
+            o.frefL = await __ql(`FROM sessions ${FS} GROUP BY hour, referrer_source ${L} ORDER BY hour LIMIT 1000`); }
+      catch (e) { o.fErrL = String(e.message || e).slice(0, 300); }
+    }
     const rt = await __ql('FROM sales SHOW total_sales, net_sales SINCE -28d UNTIL -1d');
     o.ratio28 = rt.r[0].map(Number);
     if (lyFill && ly) {   // LY-day packs missing from the static caches (new_or_returning, product x hour, utm x hour)
@@ -44,7 +55,11 @@
     }
     // product meta + thumbnails for today's sellers not already known (gross >= 300 today)
     const g = {}; o.pH.r.forEach(r => { g[r[0]] = (g[r[0]] || 0) + Number(r[3]); });
-    const want = Object.keys(g).filter(id => g[id] >= 300 && !known.includes(id)).slice(0, 60);
+    // plus each hour's top 8 sellers, for the hour drill-down on the revenue chart (titles + CDN thumbnails only)
+    const hb = {}; o.pH.r.forEach(r => { (hb[r[1]] = hb[r[1]] || {})[r[0]] = ((hb[r[1]] || {})[r[0]] || 0) + Number(r[3]); });
+    const hourTop = new Set(); Object.values(hb).forEach(m => Object.entries(m).sort((a, b) => b[1] - a[1]).slice(0, 8).forEach(([id]) => hourTop.add(id)));
+    const big = Object.keys(g).filter(id => g[id] >= 300);
+    const want = [...new Set(big.filter(id => !known.includes(id)).concat([...hourTop].filter(id => !named.includes(id) && !known.includes(id))))].slice(0, 120);
     o.newP = []; o.imgs = {};
     for (let i = 0; i < want.length; i += 25) {
       const ids = want.slice(i, i + 25).map(id => 'gid://shopify/Product/' + id);
@@ -52,8 +67,8 @@
       for (const n of (j.data && j.data.nodes) || []) {
         if (!n) continue;
         const id = n.id.split('/').pop(); const url = n.featuredMedia && n.featuredMedia.preview && n.featuredMedia.preview.image && n.featuredMedia.preview.image.url;
-        o.newP.push([id, n.title, 0, 0, 0, 0, 0, 0, n.totalInventory, n.handle, url || '']);
-        if (url) {
+        o.newP.push([id, n.title, 0, 0, 0, 0, 0, 0, n.totalInventory, n.handle, url ? url.replace(/(\.[a-z]+)(\?|$)/i, '_120x$1$2') : '']);
+        if (url && g[id] >= 300) {
           try {
             const u = url.replace(/(\.[a-z]+)(\?|$)/i, '_240x$1$2');
             const b = await (await fetch(u)).blob();

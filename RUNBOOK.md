@@ -23,7 +23,13 @@ Files in the project: `claude/bfcm-control-room-template.html` (page template, m
    - `p7.json`: product_id x hour for each of the previous 7 days (one query per day, LIMIT 10000), summed to the current local time of day, divided by 7.
    - Export from the page in <=240K-character slices (javascript_exec results save to a file when large).
 2. **Google** `google.json`: sheet "JD Ads - Intraday & Alerts" (1Esg8PD8A36gBrjYdqFMf5Jsoa1IFejFK4PUrmBvD_6o), tab hourly_curve: spend_today cumulative -> hourly, spend_ly_hour, updated_at. Updates near the top of each hour.
-3. **Meta** `meta.json`: JD_CANADA 1101395547052286, level ad_account, breakdown hourly_stats_aggregated_by_advertiser_time_zone, today and the LY date.
+3. **Meta** `meta.json`: JD_CANADA 1101395547052286, level ad_account, breakdown hourly_stats_aggregated_by_advertiser_time_zone, today and the LY date (fields amount_spent, omni_purchase_values). Keys: today (spend by hour), today_value (purchase value by hour), ly (spend by hour), ly_value (purchase value by hour on the LY date, null -> 0), ly_date, tz, pulled.
+3b. **Campaign detail** `campaigns.json` (spend channel drill-down, added 12 Nov 2026). Save each connector result unchanged to a file, then run `python3 tools/spend_detail.py --pace pace.json --dash dash.json --curve curve.json --meta metac.json --updated "<NOW HH:MM>"`:
+   - pace.json: Google Sheets get_values `campaign_pace!A1:V200` of 1Esg8PD8A36gBrjYdqFMf5Jsoa1IFejFK4PUrmBvD_6o (the `values` array).
+   - dash.json: `dash_campaigns!A1:S200` (budget column "Budget used today").
+   - curve.json: `hourly_curve!A1:Y25` (value_today / value_ly running totals, for Google ROAS by hour).
+   - metac.json: Meta ads_get_ad_entities `ad_entities` list: level campaign, date_preset today, fields id, name, amount_spent, omni_purchase_values, omni_purchase, purchase_roas, daily_budget, effective_status; filter amount_spent GREATER_THAN 0; sort amount_spent_descending; limit 50.
+   A failed part keeps the previous file's part; name it in the 'done' message.
 4. **PRM** `prm.json`: peak_days, gap_windows, day_shape parsed from jd-ecomm/jd-revenue-model index.html.
 5. **Spend plan** `spend_plan.json`: "Copy of JD Sports - BFCM Spend Planning" (15eiTzseJdeVC0HVzcRLrOUeyGWr-X4BAGy1oTgaEV9g), Daily Plan tab: working plan (col U), google/meta/shop/pinterest.
 6. **Open orders** `snapshot.json`: latest "VCS_JDSF - Open Order Snapshot" xlsx from reports@jdcanada.ca (Gmail RAW), Detail sheet regions + Master sites.
@@ -32,7 +38,15 @@ Files in the project: `claude/bfcm-control-room-template.html` (page template, m
 Then `python3 tools/compute.py [YYYY-MM-DD]` and `python3 tools/build.py`. Fonts: publish fonts/ForeverForwardSans-Headline.woff2 next to index.html (copy from the Brand Kit Test artifact).
 
 ## Hourly run tools (added 12 Nov 2026, first scheduled run)
-- `tools/pull_today.js`: paste into the Shopify analytics page (built-in browser), then `await __pull({ly:'<LY day>', p7:<first run of day>, lyFill:<LY day missing from caches>, known:[ids in shopify_raw2 imgs]})`. CSRF comes from the page's `"csrfToken"` script JSON (the meta tag no longer exists). With p7, it returns raw `p7raw`; reduce it in the page to `__out.p7` before export (see the 12 Nov run: sum gross to the current local time, /7, plus full-day /7), then `__slice(null,i)` padded with `' '.repeat(60000)`.
-- `tools/merge_pull.py pull.json`: replaces today keys in shopify_raw2.json, appends LY-day lyNR2/lyPH/utmL rows not already cached, adds new product meta to P and thumbnails to imgs, writes p7.json.
+- `tools/pull_today.js`: paste into the Shopify analytics page (built-in browser), then `await __pull({ly:'<LY day>', p7:<first run of day>, lyFill:<LY day missing from caches>, lyFun:<shopify_raw3.json fdevL has no rows for the LY day>, known:[ids in shopify_raw2 imgs], named:[all ids in shopify_raw.json P]})`. It also returns fdev / fref (sessions funnel by hour x device / referrer_source, today), fdevL / frefL (same on the LY day when lyFun), and product titles + CDN thumbnails for each hour's top 8 sellers (newP). CSRF comes from the page's `"csrfToken"` script JSON (the meta tag no longer exists). With p7, it returns raw `p7raw`; reduce it in the page to `__out.p7` before export (see the 12 Nov run: sum gross to the current local time, /7, plus full-day /7), then `__slice(null,i)` padded with `' '.repeat(60000)`.
+- `tools/merge_pull.py pull.json`: replaces today keys in shopify_raw2.json (incl. lp, fdev, fref), appends LY-day lyNR2/lyPH/utmL/fdevL/frefL rows not already cached, adds new product meta to P and thumbnails to imgs, writes p7.json.
 - `tools/snapshot.py file.xlsx "YYYY-MM-DD HH:MM"`: Open Order Snapshot attachment (Gmail RAW) -> data/snapshot.json (Detail regions, top 6 Master sites by over-3-day orders as watch).
 - Note: the static caches held lyNR2/lyPH/utmL for 2025-11-11 only, so each new day's first run pulls that LY day (lyFill:true).
+
+## Click-throughs (Ryan, 12 Nov 2026)
+- Revenue chart: click any hour -> hour detail (sales vs target and LY, orders, AOV, conversion, new customer share, top 8 sellers that hour, sessions by UTM medium vs LY, sends). Arrows step through hours. Model keys: hourtop, nrh.
+- Spend: click Google or Meta in the channel list -> campaigns (spend, budget used, ROAS today, normal and LY for Google) and spend + ROAS by hour vs LY. Model key: camp (from data/campaigns.json and meta.json today_value / ly_value).
+- Funnel: click a step -> split by device or traffic source (Shopify referrer_source), today vs LY to the same minute. Model key: fsplit.
+- Ticker (Dashboard view): click an item -> Live view with the product, hour, funnel split or spend detail open. Ticker items carry `go`.
+- Product rows -> product drill-down (landing-page funnel); fulfilment regions -> stores; KPI cards -> hourly view; chart notes collapse to short pills.
+- The page reloads itself every 10 minutes on GitHub Pages, except within 5 minutes of someone clicking or scrolling, so open drill-downs stay put.

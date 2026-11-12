@@ -276,6 +276,75 @@ flags = [n for n in notes if n['type'] != 'send']
 alerts = [n for n in flags if n['type'] == 'alert'][-2:] + [n for n in flags if n['type'] == 'good'][-1:]
 notes = sorted(sends + alerts, key=lambda n: n['h'])
 
+# ---------- hour drill-down (click an hour on the revenue chart): top sellers, new vs returning, by hour
+hourtop = []
+for h in range(NOW + 1):
+    items = sorted(((pid, a['hours'][h]) for pid, a in agg.items() if a['hours'][h] > 0), key=lambda x: -x[1])[:8]
+    row = []
+    for pid, g_ in items:
+        x = meta.get(pid)
+        row.append({'id': pid, 't': x[1] if x else f'Product {pid}', 'img': (x[10] if x else '') or '', 'h': x[9] if x else '', 'g': round(g_, 2)})
+    hourtop.append(row)
+units_h = {}
+for r in r2['pH']['r']:
+    d, h = loc(r[1])
+    if d == today: units_h[(str(r[0]), h)] = units_h.get((str(r[0]), h), 0) + num(r[4])
+for h, row in enumerate(hourtop):
+    for it in row: it['u'] = int(units_h.get((it['id'], h), 0))
+def nr_h(pack, day):
+    o = {'New': [0.0] * 24, 'Returning': [0.0] * 24, 'New_o': [0.0] * 24, 'Returning_o': [0.0] * 24}
+    c = pack['c']
+    for r in pack['r']:
+        d, h = loc(r[0])
+        k = r[c.index('new_or_returning_customer')]
+        if d != day or k not in ('New', 'Returning'): continue
+        o[k][h] += num(r[c.index('total_sales')]); o[k + '_o'][h] += num(r[c.index('orders')])
+    return {k: R2_(v) for k, v in o.items()}
+R2_ = lambda a: [round(x, 2) for x in a]
+NRH = {'today': nr_h(r2['tdNR2'], today), 'ly': nr_h(r2['lyNR2'], ly_day)}
+
+# ---------- funnel split by device and traffic source (click a funnel step), today vs LY to the same minute
+FSK = ['sessions', 'sessions_with_cart_additions', 'sessions_that_reached_checkout', 'sessions_that_completed_checkout']
+def fsplit(pack, day, dim, ly=False):
+    o = {}
+    if not pack or not pack.get('c'): return o
+    c = pack['c']
+    for r in pack['r']:
+        d, h = loc(r[0])
+        if d != day or h > NOW: continue
+        w_ = (MIN / 60 if (ly and h == NOW) else 1)
+        k = r[c.index(dim)] or 'unknown'
+        a_ = o.setdefault(k, [0.0, 0.0, 0.0, 0.0])
+        for i_, kk in enumerate(FSK): a_[i_] += num(r[c.index(kk)]) * w_
+    return {k: [round(v) for v in a_] for k, a_ in o.items()}
+FSPLIT = {'dev': {'today': fsplit(r2.get('fdev'), today, 'session_device_type'), 'ly': fsplit(r3.get('fdevL'), ly_day, 'session_device_type', True)},
+          'ref': {'today': fsplit(r2.get('fref'), today, 'referrer_source'), 'ly': fsplit(r3.get('frefL'), ly_day, 'referrer_source', True)}}
+
+# ---------- spend channel drill-down: campaigns + hourly conversion value (ROAS by hour)
+CA = J('campaigns.json') if (D / 'campaigns.json').exists() else {}
+def dif(c_):
+    c_ = [x for x in (c_ or [])]; o, prev = [], 0.0
+    for v in c_[:24]:
+        if v is None: o.append(None); continue
+        o.append(round(v - prev, 2)); prev = v
+    return (o + [None] * 24)[:24]
+CAMP = {'google': CA.get('google', []), 'meta': CA.get('meta', []), 'updated': CA.get('updated'),
+        'gv': dif(CA.get('g_value_cum')), 'gvl': dif(CA.get('g_value_ly_cum')),
+        'mv': [round(num(x), 2) for x in (m.get('today_value') or [])], 'mvl': [round(num(x), 2) for x in (m.get('ly_value') or [])]}
+
+# ---------- ticker: where each item jumps to when clicked
+listed = {q['id'] for q in top + trending}; extra = []
+for t_ in ticker:
+    k = t_['k']
+    if k in ('Product', 'Trending', 'Stock'):
+        pid = next((q['id'] for q in P if t_['txt'].startswith(q['t'].split(' / ')[0])), None)
+        t_['go'] = f'p:{pid}' if pid else 'products'
+        if pid and pid not in listed and pid not in {q['id'] for q in extra}: extra.append(next(q for q in P if q['id'] == pid))
+    elif k == 'Pace': t_['go'] = 'rev'
+    elif k == 'Conversion': t_['go'] = 'funnel'
+    elif k in ('Email', 'SMS'): t_['go'] = 'funnel:ref'
+    elif k == 'Paid': t_['go'] = 'spend'
+
 snap = J('snapshot.json') if (D / 'snapshot.json').exists() else None
 gw = prm['gap_windows']; w = next((x for x in gw if x['window'].startswith('Last 90')), gw[0])
 jr = num(w['jesta']) / num(w['shopify_net'])
@@ -304,9 +373,10 @@ model = {
     'mer': {'live': round(tot_c[NOW] / spend_so_far, 2) if spend_so_far else None, 'forecast': round(pred / spend_fc, 2) if spend_fc else None,
             'ly': round(K['total'][1] / K['spend'][1], 2) if K['spend'][1] else None, 'floor': 16, 'rev_so_far': round(tot_c[NOW], 2)},
     'jesta': {'ratio': round(jr, 4), 'window': w['window'], 'expected': round(net_fc * jr, 2), 'status': 'TBC'},
-    'products': {'top': top, 'trending': trending, 'new': [q['t'] for q in new_in], 'rules': RULES},
+    'products': {'top': top, 'trending': trending, 'extra': extra, 'new': [q['t'] for q in new_in], 'rules': RULES},
     'utm': {'today': {k: R2(v) for k, v in U.items()}, 'ly': {k: R2(v) for k, v in UW.items()}},
     'ticker': ticker, 'notes': notes, 'snapshot': snap, 'lp_ok': bool(LP),
+    'hourtop': hourtop, 'nrh': NRH, 'fsplit': FSPLIT, 'camp': CAMP,
 }
 json.dump(model, open(D / 'model.json', 'w'), separators=(',', ':'))
 print(json.dumps({k: model[k] for k in ['pulled', 'target_day', 'pred', 'need_rest', 'ratio', 'funnel', 'mer', 'notes']}, indent=1))
