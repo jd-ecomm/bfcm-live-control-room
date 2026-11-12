@@ -15,6 +15,7 @@ for k in ['tdT', 'tdFn', 'tdNR2', 'utmT', 'pH', 'ratio28']:
     r2[k] = o[k]
 r2.setdefault('imgs', {}).update(o.get('imgs') or {})
 r2['pulled'] = o['pulled']
+r2['lp'] = o.get('lp')   # landing-page funnel today (None if the query failed)
 
 def add(store, key, pack):
     if not pack: return

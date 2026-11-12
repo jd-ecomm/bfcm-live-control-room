@@ -16,5 +16,9 @@ regions = rows(wb['Detail'])
 sites = [s for s in rows(wb['Master']) if not s['name'].endswith('Total')]
 watch = sorted(sites, key=lambda s: (-s['gt3'], -s['open']))[:6]
 D = Path(__file__).resolve().parent.parent / 'data'
-(D / 'snapshot.json').write_text(json.dumps({'as_of': sys.argv[2], 'regions': regions, 'watch': watch}))
+REG = json.loads((D / 'stores.json').read_text())
+for s in sites:
+    code = s['name'].split('-')[0].strip()
+    s['region'] = REG.get(code, 'Warehouse' if not code.isdigit() else 'Other')
+(D / 'snapshot.json').write_text(json.dumps({'as_of': sys.argv[2], 'regions': regions, 'watch': watch, 'sites': sites}))
 print('snapshot', sys.argv[2], [(r['name'], r['open']) for r in regions])

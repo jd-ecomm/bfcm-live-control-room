@@ -177,6 +177,21 @@ for r in r3.get('lyPH', {}).get('r', []):
     if d != ly_day or h > NOW: continue
     w_ = MIN / 60 if h == NOW else 1
     lyp[str(r[0])] = lyp.get(str(r[0]), 0) + num(r[2]) * w_
+lyh = {}
+for r in r3.get('lyPH', {}).get('r', []):
+    d, h = loc(r[1])
+    if d == ly_day: lyh.setdefault(str(r[0]), [0.0] * 24)[h] += num(r[2])
+import re
+LP = {}
+lpk = r2.get('lp') or {}
+if lpk.get('c'):
+    ci = {k: lpk['c'].index(k) for k in lpk['c']}
+    for r in lpk['r']:
+        m_ = re.search(r'/products/([^/?#]+)', str(r[ci['landing_page_path']] or ''))
+        if not m_: continue
+        a_ = LP.setdefault(m_.group(1).lower(), [0, 0, 0, 0])
+        for i_, k in enumerate(['sessions', 'sessions_with_cart_additions', 'sessions_that_reached_checkout', 'sessions_that_completed_checkout']):
+            a_[i_] += num(r[ci[k]])
 P = []
 for pid, a in agg.items():
     x = meta.get(pid)
@@ -186,7 +201,8 @@ for pid, a in agg.items():
     if inv is not None:
         stock = 'out' if inv <= 0 else ('low' if inv < 15 or inv < 3 * max(a['units'], 0) else None)
     P.append({'id': pid, 't': t, 'gross': round(a['gross'], 2), 'total': round(a['total'], 2), 'units': int(a['units']),
-              'ly': round(lyp.get(pid, 0), 2), 'inv': inv, 'h': handle, 'img': imgs.get(pid) or '', 'stock': stock, 'hours': [round(v, 2) for v in a['hours']]})
+              'ly': round(lyp.get(pid, 0), 2), 'inv': inv, 'h': handle, 'img': imgs.get(pid) or '', 'stock': stock, 'hours': [round(v, 2) for v in a['hours']],
+              'lyh': [round(v, 2) for v in lyh.get(pid, [0.0] * 24)], 'lp': LP.get((handle or '').lower())})
 P.sort(key=lambda p: -p['gross'])
 top = P[:10]
 # trending: today so far vs the average of the previous 7 days to the same time of day (Ryan, 10 Nov 2026)
@@ -290,7 +306,7 @@ model = {
     'jesta': {'ratio': round(jr, 4), 'window': w['window'], 'expected': round(net_fc * jr, 2), 'status': 'TBC'},
     'products': {'top': top, 'trending': trending, 'new': [q['t'] for q in new_in], 'rules': RULES},
     'utm': {'today': {k: R2(v) for k, v in U.items()}, 'ly': {k: R2(v) for k, v in UW.items()}},
-    'ticker': ticker, 'notes': notes, 'snapshot': snap,
+    'ticker': ticker, 'notes': notes, 'snapshot': snap, 'lp_ok': bool(LP),
 }
 json.dump(model, open(D / 'model.json', 'w'), separators=(',', ':'))
 print(json.dumps({k: model[k] for k in ['pulled', 'target_day', 'pred', 'need_rest', 'ratio', 'funnel', 'mer', 'notes']}, indent=1))

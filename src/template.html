@@ -140,7 +140,25 @@ section{padding-block:22px 2px}
 .flag.low{background:var(--yellow);color:#000} .flag.out{background:var(--alert);color:#000}
 
 /* order fulfilment */
-.ful{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ful{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+/* product drill-down + clickable rows (Ryan, 12 Nov 2026) */
+.trow{cursor:pointer}.trow.on{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow) inset}
+.pdrill{grid-column:1/-1;border-color:var(--yellow)}
+.pd-h{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:16px;align-items:center}
+.pd-h img,.pd-h .noimg{width:96px;height:96px;border-radius:12px;background:#fff;object-fit:contain;display:block}
+.pd-h h3{margin:0;font-size:15px;font-weight:700;line-height:1.3}
+.pd-h .sub{margin-top:6px;font-size:12px;color:var(--fg2);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.pd-h a{color:var(--yellow);font-weight:700;text-decoration:none}
+.pd-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:16px}
+.pd-stats>div{background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.pd-stats b{display:block;font-family:var(--display);font-size:30px;line-height:.85;margin-top:8px;text-transform:uppercase}
+.pd-stats span{display:block;font-size:11px;color:var(--fg2);margin-top:6px}
+.pd-note{font-size:11.5px;color:var(--fg3);margin-top:10px}
+.pd-chart{position:relative;height:220px;margin-top:14px}
+.ftab tr.reg{cursor:pointer}.ftab tr.reg td:first-child::before{content:"▸";display:inline-block;width:14px;color:var(--yellow);transition:transform .15s}
+.ftab tr.reg.open td:first-child::before{transform:rotate(90deg)}
+.ftab tr.st td{color:var(--fg2);font-size:12px;background:#0b0b0b}.ftab tr.st td:first-child{padding-left:30px}
+@media(max-width:760px){.pd-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.pd-h{grid-template-columns:64px minmax(0,1fr)}.pd-h img,.pd-h .noimg{width:64px;height:64px}}
 .ful .v{font-size:46px;margin-top:10px}
 .ful .v small{font-family:var(--body);font-size:15px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--yellow);margin-left:8px}
 .ful .t{margin-top:8px;font-size:12px;color:var(--fg2)}
@@ -469,14 +487,27 @@ Chart.defaults.plugins.legend.display = false;
 Object.assign(Chart.defaults.plugins.tooltip, {backgroundColor:'#161616', borderColor:'#3a3a3a', borderWidth:1, titleColor:'#fff', bodyColor:C.fg2, padding:10, cornerRadius:8});
 const glow = { id:'glow', beforeDatasetDraw(ch, a){ const ds = ch.data.datasets[a.index]; if(!ds.glow) return; const c=ch.ctx; c.save(); c.shadowColor='rgba(255,222,20,.75)'; c.shadowBlur=ds.glow; },
   afterDatasetDraw(ch, a){ if(ch.data.datasets[a.index].glow) ch.ctx.restore(); } };
+// Chart notes sit in a band reserved above the plot so they never cover the lines (Ryan, 12 Nov 2026).
+// Click a note to shrink it to a short pill ("Email", "Spike", "Alert"); click again to expand. Remembered per browser.
+const NOTE_KEY = 'cr_notes_collapsed';
+let COLL = new Set(); try { COLL = new Set(JSON.parse(localStorage.getItem(NOTE_KEY)||'[]')); } catch(e) {}
+const noteShort = n => n.type==='send' ? (n.label.split(':')[0]||'Send') : n.type==='good' ? 'Spike' : 'Alert';
+const noteKey = n => M.date+'|'+n.label;
+const noteText = n => COLL.has(noteKey(n)) ? noteShort(n)+'  +' : n.label+'  –';
+const noteBand = (list, fs) => list.length ? Math.min(list.length, 3)*(fs*2+5) + 10 : 4;
+function toggleNote(ch, e){ const hit = (ch.$pills||[]).find(q => e.x>=q.x && e.x<=q.x+q.w && e.y>=q.y && e.y<=q.y+q.h); if(!hit) return false;
+  COLL.has(hit.k) ? COLL.delete(hit.k) : COLL.add(hit.k); try { localStorage.setItem(NOTE_KEY, JSON.stringify([...COLL])); } catch(err) {}
+  [window.cRevRef, window.sChartRef].forEach(c => c && c.draw()); return true; }
 const notesPlug = { id:'notes', afterDatasetsDraw(ch, a, o){ if(!o.list) return; const {ctx:c, chartArea:ca, scales:{x}} = ch; c.save(); const fs = o.size||10.5; c.font = `700 ${fs}px 'Inter Tight', Arial, sans-serif`;
+  const band = noteBand(o.list, fs); ch.$pills = [];
   const rows = []; o.list.forEach(n => { const px = x.getPixelForValue(n.h); if(px<ca.left||px>ca.right) return; const col = n.type==='send'?C.t:n.type==='good'?C.y:C.a;
-    const w = c.measureText(n.label).width + fs*1.4, hgt = fs*2, left = px > ca.right - w ? px - w : px;
-    let r = 0; while(rows[r]!=null && rows[r] > left - 6) r++; rows[r] = left + w;
-    const y = ca.top + 2 + r*(hgt+5);
+    const label = noteText(n), w = c.measureText(label).width + fs*1.4, hgt = fs*2, left = px > ca.right - w ? px - w : px;
+    let r = 0; while(rows[r]!=null && rows[r] > left - 6 && r < 2) r++; rows[r] = left + w;
+    const y = ca.top - band + 4 + r*(hgt+5);
+    ch.$pills.push({x:left, y, w, h:hgt, k:noteKey(n)});
     c.strokeStyle = col; c.globalAlpha=.45; c.setLineDash([3,3]); c.lineWidth=1; c.beginPath(); c.moveTo(px, y+hgt); c.lineTo(px, ca.bottom); c.stroke(); c.setLineDash([]); c.globalAlpha=1;
     c.fillStyle = col; c.beginPath(); if(c.roundRect) c.roundRect(left, y, w, hgt, hgt/2); else c.rect(left, y, w, hgt); c.fill();
-    c.fillStyle = '#000'; c.textBaseline='middle'; c.fillText(n.label, left + fs*.7, y + hgt/2 + .5); });
+    c.fillStyle = '#000'; c.textBaseline='middle'; c.fillText(label, left + fs*.7, y + hgt/2 + .5); });
   c.restore(); } };
 const nowShade = { id:'nowshade', beforeDatasetsDraw(ch, a, o){ if(o.x==null) return; const {ctx:c, chartArea:ca, scales:{x}} = ch; const px = x.getPixelForValue(o.x); c.save(); const g = c.createLinearGradient(px-80,0,px,0); g.addColorStop(0,'rgba(255,222,20,0)'); g.addColorStop(1,'rgba(255,222,20,.08)'); c.fillStyle=g; c.fillRect(px-80, ca.top, 80, ca.bottom-ca.top); c.restore(); } };
 Chart.register(glow, notesPlug, nowShade);
@@ -503,15 +534,21 @@ function placePulse(ch, el, txtEl, mode){ const meta = ch.getDatasetMeta(0); con
   const right = pt.x > ch.chartArea.right - 170; txtEl.style.left = right ? 'auto' : '18px'; txtEl.style.right = right ? '18px' : 'auto'; }
 const FS = k => { const u = Math.min(innerWidth/100, innerHeight*1.7/100); return Math.max(10, Math.round(u*k)); };
 function revChart(canvas, mode, big, pulseEl, pulseT){
+  // notes live outside the plot area, where Chart.js ignores clicks, so listen on the canvas itself (once per canvas)
+  if(!canvas.$noteEv){ canvas.$noteEv = true;
+    const at = ev => { const r = canvas.getBoundingClientRect(); return {x:ev.clientX-r.left, y:ev.clientY-r.top}; };
+    canvas.addEventListener('click', ev => { const ch = Chart.getChart(canvas); if(ch) toggleNote(ch, at(ev)); });
+    canvas.addEventListener('mousemove', ev => { const ch = Chart.getChart(canvas); if(!ch) return; const e = at(ev); canvas.style.cursor = (ch.$pills||[]).some(q => e.x>=q.x && e.x<=q.x+q.w && e.y>=q.y && e.y<=q.y+q.h) ? 'pointer' : 'default'; }); }
   return new Chart(canvas, {type:'line', data:{datasets:revDatasets(mode, big)}, options:{responsive:true, maintainAspectRatio:false, parsing:false, animation:{duration:big?0:600},
-    interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:4, right:big?20:12}},
-    scales:{x:xS(big?FS(.78):11), y:yS(big?FS(.78):11)},
+    interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:noteBand(M.notes, big?FS(.62):10.5), right:big?20:12}},
+    scales:{x:xS(big?FS(.78):11), y:Object.assign(yS(big?FS(.78):11), {grace:'8%'})},
+
     plugins:{notes:{list:M.notes, size:big?FS(.62):10.5}, nowshade:{x:NOWX}, tooltip:{enabled:!big, callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum' ? 'By '+(x%1? upd : hl(Math.round(x))) : h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)+(it.raw.proj?' (pace, hour in progress)':'')}}}},
     plugins:[{id:'pulse', afterRender: c => placePulse(c, pulseEl, pulseT, mode)}]});
 }
-let rm='cum', cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT'));
+let rm='cum', cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); window.cRevRef = cRev;
 $('rnote').textContent = `Shopify total sales (orders less discounts and returns, plus shipping and tax). Target is the PRM daily target of ${K$(M.target_net)} net × ${M.ratio.toFixed(3)}, this year's total-to-net ratio over the last 28 days.`;
-document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { rm=b.dataset.rm; document.querySelectorAll('[data-rm]').forEach(x=>x.classList.toggle('on',x===b)); cRev.destroy(); cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); });
+document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { rm=b.dataset.rm; document.querySelectorAll('[data-rm]').forEach(x=>x.classList.toggle('on',x===b)); cRev.destroy(); cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); window.cRevRef = cRev; });
 
 // ---------- spend (lines only)
 let chn='total', smode='cum', cSp;
@@ -589,9 +626,44 @@ function funnelViz(i, small){
 const stock = p => p.stock==='out' ? '<span class="flag out">Out of stock</span>' : p.stock==='low' ? `<span class="flag low">Low stock · ${p.inv}</span>` : '';
 const url = p => 'https://www.jdsports.ca/products/'+encodeURIComponent(p.h||'');
 const vsLy = p => p.ly ? `<b class="${p.gross>=p.ly?'up':'down'}">${p.gross>=p.ly?'+':''}${pct(p.gross/p.ly-1,0)}</b><span>vs LY ${K$(p.ly)}</span>` : `<b class="yel">New</b><span>no sales LY</span>`;
-$('top').innerHTML = P.top.map((p,i) => `<a class="trow" href="${url(p)}" target="_blank" rel="noopener"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> · ${p.units} units</span>${stock(p)}</div></div><div class="g">${vsLy(p)}</div></a>`).join('');
-$('trend').innerHTML = P.trending.length ? P.trending.map((p,i)=>`<a class="trow" href="${url(p)}" target="_blank" rel="noopener"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> today · 7-day avg ${p.avg7?K$(p.avg7):'$0'}</span>${stock(p)}</div></div><div class="g">${p.g==null?'<b class="yel">New</b><span>little or no sales in the last 7 days</span>':`<b class="up">+${(p.g*100).toFixed(0)}%</b><span>vs 7-day avg</span>`}</div></a>`).join('') : '<div class="card" style="color:var(--fg3)">Nothing meets the minimum rules yet today.</div>';
+$('top').innerHTML = P.top.map((p,i) => `<div class="trow" data-pl="top" data-pi="${i}" role="button" tabindex="0"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> · ${p.units} units</span>${stock(p)}</div></div><div class="g">${vsLy(p)}</div></div>`).join('');
+$('trend').innerHTML = P.trending.length ? P.trending.map((p,i)=>`<div class="trow" data-pl="trending" data-pi="${i}" role="button" tabindex="0"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> today · 7-day avg ${p.avg7?K$(p.avg7):'$0'}</span>${stock(p)}</div></div><div class="g">${p.g==null?'<b class="yel">New</b><span>little or no sales in the last 7 days</span>':`<b class="up">+${(p.g*100).toFixed(0)}%</b><span>vs 7-day avg</span>`}</div></div>`).join('') : '<div class="card" style="color:var(--fg3)">Nothing meets the minimum rules yet today.</div>';
 $('trnote').textContent = `Sales today so far vs each product's average for the previous 7 days to the same time of day (${upd}). Minimum rules: ${P.rules.min_units}+ units and $${P.rules.min_sales}+ today, $${P.rules.min_avg7}+ 7-day average. If fewer than 10 qualify, the rest are the biggest sellers with little or nothing in the last 7 days.`;
+
+// product drill-down: today's sales by hour vs the same day last year, plus the product page's own funnel
+let pdOpen = null, cPd;
+function closePd(){ document.querySelectorAll('.pdrill').forEach(x=>x.remove()); document.querySelectorAll('.trow').forEach(x=>x.classList.remove('on')); pdOpen=null; if(cPd){cPd.destroy(); cPd=null;} }
+function openPd(row){
+  const list = row.dataset.pl, i = +row.dataset.pi, p = P[list][i], key = list+i;
+  if(pdOpen===key){ closePd(); return; } closePd(); pdOpen = key; row.classList.add('on');
+  const lp = p.lp, n0 = v => Math.round(v).toLocaleString('en-CA');
+  const lyNow = sum(p.lyh||[], DONE) + ((p.lyh||[])[NOW]||0)*(M.now_m/60);
+  const st = lp ? [['Product page sessions', n0(lp[0]), 'Sessions that landed on this product page today'],
+      ['Added to cart', n0(lp[1]), pct(lp[1]/(lp[0]||1),1)+' of those sessions'],
+      ['Reached checkout', n0(lp[2]), pct(lp[2]/(lp[0]||1),1)+' of those sessions'],
+      ['Completed checkout', n0(lp[3]), 'Orders from sessions that started here'],
+      ['Conversion', pct(lp[3]/(lp[0]||1),2), 'vs site '+pct(K.cc[0]/K.sessions[0],2)]]
+    : [['Sales today', K$(p.gross), p.units+' units'],['Same hours LY', p.ly?K$(p.ly):'–', p.ly?(p.gross>=p.ly?'+':'')+pct(p.gross/p.ly-1,0)+' vs LY':'no sales LY'],['7-day average', p.avg7?K$(p.avg7):'$0', 'to the same time of day'],['Stock', p.inv==null?'–':n0(p.inv), 'units on hand, all locations'],['Product page', '–', 'funnel arrives with the next hourly update']];
+  const el = document.createElement('div'); el.className = 'card pdrill';
+  el.innerHTML = `<div class="pd-h">${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><h3>${esc(p.t)}</h3>
+      <div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> today · ${p.units} units</span><span>${p.ly?`LY same hours ${K$(p.ly)}`:'No sales LY'}</span><span>7-day avg ${p.avg7?K$(p.avg7):'$0'}</span>${stock(p)}<a href="${url(p)}" target="_blank" rel="noopener">Open on jdsports.ca ↗</a></div></div>
+      <button class="pill sm closeb" aria-label="Close">✕ Close</button></div>
+    <div class="pd-stats">${st.map(s=>`<div><div class="lbl">${s[0]}</div><b class="num">${s[1]}</b><span>${s[2]}</span></div>`).join('')}</div>
+    <div class="pd-note">${lp?'Product page funnel = sessions that landed on this product page today (Shopify landing page), so completed checkouts can include other products in the basket.':''} Chart: this product's sales by hour today vs the same day last year.</div>
+    <div class="pd-chart"><canvas></canvas></div>`;
+  const grid = row.parentElement; const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
+  const kids = [...grid.children].filter(x=>x.classList.contains('trow')); const idx = kids.indexOf(row); const after = kids[Math.min(kids.length-1, idx - idx%cols + cols-1)];
+  after.after(el);
+  el.querySelector('.closeb').onclick = e => { e.stopPropagation(); closePd(); };
+  cPd = new Chart(el.querySelector('canvas'), {type:'line', data:{datasets:[
+      {label:'Today', data:p.hours.map((v,h)=>({x:h+.5,y:v})).filter((q,h)=>h<=NOW), borderColor:C.y, borderWidth:3, pointRadius:3, pointBackgroundColor:C.y, tension:.3, glow:12, fill:'origin', backgroundColor:'rgba(255,222,20,.08)'},
+      {label:'Same day last year', data:(p.lyh||[]).map((v,h)=>({x:h+.5,y:v})), borderColor:C.fg3, borderWidth:1.8, pointRadius:0, tension:.3}]},
+    options:{responsive:true, maintainAspectRatio:false, parsing:false, interaction:{mode:'nearest', axis:'x', intersect:false}, scales:{x:xS(), y:yS()},
+      plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>h12(Math.floor(it[0].parsed.x))+' to '+h12(Math.floor(it[0].parsed.x)+1), label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)}}}}});
+  el.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+document.querySelectorAll('.trow').forEach(r => { r.onclick = () => openPd(r); r.onkeydown = e => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openPd(r); } }; });
+document.addEventListener('keydown', e => { if(e.key==='Escape' && pdOpen) closePd(); });
 
 // ---------- order fulfilment (Open Order Snapshot)
 const sn = M.snapshot, R_ = n => sn && sn.regions.find(r=>r.name===n);
@@ -600,8 +672,10 @@ if(ct){
   const n0 = v => Math.round(v).toLocaleString('en-CA');
   $('ful').innerHTML = [
     ['Open orders and value', `${n0(ct.open)}<small>orders · ${K$(ct.value)}</small>`, `Open order value ${D$(ct.value)}. Warehouse ${n0(wh.open)} (${K$(wh.value)}), stores ${n0(stT.open)} (${K$(stT.value)}).`],
-    ['Shipped today', n0(ct.shipped_today), `On time today <b>${pct(ct.ot_today,0)}</b> · month to date ${pct(ct.ot_mtd,0)} (${n0(ct.shipped_mtd)} shipped).`],
-    ['Declines today', n0(ct.decl_today), `Decline rate month to date <b>${pct(ct.decl_rate,1)}</b> (${n0(ct.decl_mtd)}). Stores ${pct(stT.decl_rate,1)}, warehouse ${pct(wh.decl_rate,1)}.`],
+    ['Shipped today', n0(ct.shipped_today), `Month to date ${n0(ct.shipped_mtd)} shipped.`],
+    ['On time today', pct(ct.ot_today,0), `Month to date <b>${pct(ct.ot_mtd,0)}</b>. Stores ${pct(stT.ot_today,0)}, warehouse ${pct(wh.ot_today,0)} today.`],
+    ['Declines today', n0(ct.decl_today), `${n0(ct.decl_mtd)} declined month to date.`],
+    ['Decline rate', pct(ct.decl_rate,1), `Month to date. Stores <b>${pct(stT.decl_rate,1)}</b>, warehouse <b>${pct(wh.decl_rate,1)}</b>.`],
     ['Days to complete', (+ct.days_complete).toFixed(1), `Average days from order to shipped. Stores ${(+stT.days_complete).toFixed(1)}, warehouse ${(+wh.days_complete).toFixed(1)}.`],
   ].map(o=>`<div class="card"><div class="lbl">${o[0]}</div><div class="v dsp num">${o[1]}</div><div class="t">${o[2]}</div></div>`).join('');
   const ages = [['Under 24 hrs','lt24','#43D5B0'],['1 to 2 days','d1_2','#FFDE14'],['2 to 3 days','d2_3','#F2A93B'],['Over 3 days','gt3','#FF6B4A'],['On hold','hold','#8A8B8C']];
@@ -610,8 +684,15 @@ if(ct){
     <div class="agekey">${ages.map(a=>`<div><i style="background:${a[2]}"></i>${a[0]}<b class="num">${n0(ct[a[1]])}</b></div>`).join('')}</div>`;
   const rows = sn.regions.filter(r=>!/Company/.test(r.name));
   $('ftab').innerHTML = `<thead><tr><th>Region</th><th>Open</th><th>Value</th><th>Over 3 days</th><th>On hold</th><th>Shipped today</th><th>On time today</th><th>Declines today</th><th>Decline rate MTD</th><th>Days to complete</th></tr></thead><tbody>` +
-    rows.concat([ct]).map(r=>`<tr class="${/Total/.test(r.name)?'tot':''}"><td>${esc(r.name)}</td><td>${n0(r.open)}</td><td>${D$(r.value)}</td><td class="${r.gt3>20?'warn':''}">${n0(r.gt3)}</td><td>${n0(r.hold)}</td><td>${n0(r.shipped_today)}</td><td>${pct(r.ot_today,0)}</td><td>${n0(r.decl_today)}</td><td>${pct(r.decl_rate,1)}</td><td>${(+r.days_complete).toFixed(1)}</td></tr>`).join('') + '</tbody>';
-  $('opsnote').textContent = `From the Open Order Snapshot email at ${sn.as_of.slice(11)} PT. Expected JESTA for today (proxy until the hourly MPRD report arrives): ${K$(M.jesta.expected)}.`;
+    rows.concat([ct]).map(r=>`<tr class="${/Total/.test(r.name)?'tot':''} ${r.name!=='Company Total'?'reg':''}" data-reg="${esc(r.name)}"><td>${esc(r.name)}</td><td>${n0(r.open)}</td><td>${D$(r.value)}</td><td class="${r.gt3>20?'warn':''}">${n0(r.gt3)}</td><td>${n0(r.hold)}</td><td>${n0(r.shipped_today)}</td><td>${pct(r.ot_today,0)}</td><td>${n0(r.decl_today)}</td><td>${pct(r.decl_rate,1)}</td><td>${(+r.days_complete).toFixed(1)}</td></tr>`).join('') + '</tbody>';
+  // click a region (or the store / warehouse totals) to list its stores underneath
+  const stRow = r => `<tr class="st"><td>${esc(r.name.replace(/^(\d{4})-(JD Sports )?(.*)$/, '$3 ($1)'))}</td><td>${n0(r.open)}</td><td>${D$(r.value)}</td><td class="${r.gt3>5?'warn':''}">${n0(r.gt3)}</td><td>${n0(r.hold)}</td><td>${n0(r.shipped_today)}</td><td>${pct(r.ot_today,0)}</td><td>${n0(r.decl_today)}</td><td>${pct(r.decl_rate,1)}</td><td>${(+r.days_complete).toFixed(1)}</td></tr>`;
+  const sitesFor = n => (sn.sites||[]).filter(s => n==='Store Total' ? s.region!=='Warehouse' : n==='Warehouse Total' ? s.region==='Warehouse' : s.region===n).sort((a,b)=>b.open-a.open);
+  document.querySelectorAll('#ftab tr.reg').forEach(tr => tr.onclick = () => {
+    const open = tr.classList.toggle('open'); let nx = tr.nextElementSibling; while(nx && nx.classList.contains('st')){ const d = nx; nx = nx.nextElementSibling; d.remove(); }
+    if(!open) return; const list = sitesFor(tr.dataset.reg);
+    tr.insertAdjacentHTML('afterend', list.length ? list.map(stRow).join('') : `<tr class="st"><td colspan="10">Store detail arrives with the next hourly update.</td></tr>`); });
+  $('opsnote').textContent = `From the Open Order Snapshot email at ${sn.as_of.slice(11)} PT. Click a region to see its stores. Expected JESTA for today (proxy until the hourly MPRD report arrives): ${K$(M.jesta.expected)}.`;
 } else { $('ful').innerHTML = '<div class="card" style="color:var(--fg3)">No Open Order Snapshot yet today.</div>'; }
 
 // ---------- KPI drill-down
@@ -663,7 +744,7 @@ function screen(){
   $('s-mq').style.setProperty('--mqd', Math.max(40, M.ticker.reduce((a,t)=>a+t.txt.length,0)*.28)+'s');
   clearInterval(rot); rot = setInterval(() => { srm = srm==='cum'?'hr':'cum'; drawScreenChart(); }, 45000);
 }
-function drawScreenChart(){ if(sChart) sChart.destroy(); sChart = revChart($('cScr'), srm, true, $('spulse'), $('spulseT'));
+function drawScreenChart(){ if(sChart) sChart.destroy(); sChart = revChart($('cScr'), srm, true, $('spulse'), $('spulseT')); window.sChartRef = sChart;
   document.querySelectorAll('[data-srm]').forEach(x=>x.classList.toggle('on', x.dataset.srm===srm)); $('s-ct').textContent = srm==='cum' ? 'Revenue pacing · running total' : 'Revenue per hour'; }
 document.querySelectorAll('[data-srm]').forEach(b => b.onclick = () => { srm=b.dataset.srm; drawScreenChart(); });
 

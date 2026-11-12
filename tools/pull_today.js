@@ -27,6 +27,9 @@
     o.tdNR2 = await __ql(`FROM sales SHOW total_sales, net_sales, orders GROUP BY hour, new_or_returning_customer ${T} ORDER BY hour`);
     o.utmT = await __ql(`FROM sessions SHOW sessions GROUP BY hour, utm_medium ${T} ORDER BY hour LIMIT 10000`);
     o.pH = await __ql(`FROM sales SHOW total_sales, gross_sales, net_items_sold GROUP BY product_id, hour ${T} LIMIT 10000`);
+    // landing-page funnel today, for the product drill-down (Ryan, 12 Nov 2026); non-fatal if ShopifyQL rejects it
+    try { o.lp = await __ql(`FROM sessions SHOW sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout GROUP BY landing_page_path ${T} ORDER BY sessions DESC LIMIT 5000`); }
+    catch (e) { o.lpErr = String(e.message || e).slice(0, 300); }
     const rt = await __ql('FROM sales SHOW total_sales, net_sales SINCE -28d UNTIL -1d');
     o.ratio28 = rt.r[0].map(Number);
     if (lyFill && ly) {   // LY-day packs missing from the static caches (new_or_returning, product x hour, utm x hour)
