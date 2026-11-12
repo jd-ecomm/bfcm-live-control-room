@@ -1,0 +1,676 @@
+<title>JD Black Friday Control Room</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: Live = yellow hero, pace strip, KPI row, revenue pacing, spend + MER, funnel graphic, products, ops.
+   Screen = one 16:9 frame built around the revenue pacing chart, with a rotating ticker on top. */
+@font-face{font-family:'Forever Forward Sans';src:url('fonts/ForeverForwardSans-Headline.woff2') format('woff2');font-weight:400 900;font-style:normal;font-display:swap}
+:root{
+  --yellow:#FFDE14; --bright:#EFFF04; --teal:#43D5B0; --gray:#A7A8A9; --alert:#FF6B4A;
+  --bg:#000; --s1:#0F0F0F; --s2:#171717; --s3:#222; --line:#262626; --line2:#363636;
+  --fg:#FFF; --fg2:#C9C9C9; --fg3:#8A8B8C;
+  --display:'Forever Forward Sans','Arial Narrow',Impact,sans-serif;
+  --body:'Inter Tight','Helvetica Neue',Arial,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--body);font-size:13.5px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.dsp .cm{margin:0 -.12em 0 -.06em}
+.dsp{font-family:var(--display);font-weight:400;font-style:normal;text-transform:uppercase;letter-spacing:-.02em;line-height:.8}
+.num{font-variant-numeric:tabular-nums}
+.up{color:var(--teal)} .down{color:var(--gray)} .warn{color:var(--alert)} .yel{color:var(--yellow)}
+.lbl{font-size:10.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--fg3)}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+@media(min-width:900px){.wrap{padding-left:max(32px,env(safe-area-inset-left,0px));padding-right:max(32px,env(safe-area-inset-right,0px))}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;background:var(--yellow);color:#000}
+.hero .wrap{padding-block:22px 20px;padding-right:max(130px,env(safe-area-inset-right,0px))}
+.hero .brand{font-weight:700;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase}
+.hero h1{margin:10px 0 0;font-size:64px}
+.hero h1 span{display:block;margin-left:8.7px}
+.hero .meta{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px 18px;font-weight:500;font-size:12.5px;color:rgba(0,0,0,.75)}
+.hero .meta b{color:#000}
+.live-dot{display:inline-flex;align-items:center;gap:7px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.live-dot i{width:9px;height:9px;border-radius:50%;background:currentColor;animation:blink 1.6s infinite}
+@keyframes blink{50%{opacity:.2}}
+.roundel{position:absolute;right:max(0px,env(safe-area-inset-right,0px));top:22px;width:72px;height:72px;color:#000}
+.hero::after{content:"";position:absolute;right:104px;top:-20px;bottom:-20px;width:2px;background:#000;transform:rotate(10deg)}
+
+/* tab bar */
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(10,10,10,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.tabs .wrap{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-block:10px}
+.pill{appearance:none;border:1px solid var(--line2);border-radius:999px;background:var(--s2);color:var(--fg2);font:600 11.5px/1 var(--body);letter-spacing:.06em;text-transform:uppercase;padding:9px 14px;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.pill:hover{color:var(--fg);border-color:#4a4a4a}
+.pill.on{background:var(--yellow);color:#000;border-color:var(--yellow)}
+.pill.sm{padding:7px 11px;font-size:10.5px}
+.seg{display:inline-flex;gap:4px;flex-wrap:wrap;align-items:center}
+.seg+.seg{margin-left:8px}
+.tabs .fresh{margin-left:auto;font-size:11.5px;color:var(--fg3)}
+.tabs .fresh b{color:var(--fg2)}
+
+section{padding-block:22px 2px}
+.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.sh h2{margin:0;font-size:32px}
+.sh p{margin:8px 0 0;color:var(--fg3);font-size:12.5px;max-width:78ch}
+.card{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0;position:relative}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+
+/* pace strip */
+.pc .big{font-size:68px;margin-top:10px}
+.pc .meta{display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:12px;color:var(--fg3)}
+.pc .meta b{color:var(--fg);font-weight:700}
+.pc .say{margin-top:10px;font-size:12.5px;color:var(--fg2)}
+.pc.lead{border-color:#3a3410;background:linear-gradient(160deg,#16140a 0%,var(--s1) 55%)}
+.track{height:12px;border-radius:999px;background:var(--s3);margin-top:16px;position:relative}
+.track .fill{position:absolute;inset:0 auto 0 0;border-radius:999px;background:linear-gradient(90deg,#c9ae00,var(--yellow));box-shadow:0 0 18px rgba(255,222,20,.35)}
+.track .mk{position:absolute;top:-6px;bottom:-6px;width:2px;background:var(--fg)}
+.track .mk span{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--fg3);white-space:nowrap;text-transform:uppercase}
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 11px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.chip.good{color:#000;background:var(--teal)} .chip.bad{color:#000;background:var(--alert)} .chip.mid{color:#000;background:var(--yellow)}
+.mini{display:block;width:100%;height:46px;margin-top:12px}
+
+/* KPI row */
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.kpi{padding:16px}
+.kpi .v{font-size:44px;margin-top:10px}
+.kpi .d{margin-top:8px;font-size:11.5px;color:var(--fg2)}
+.kpi svg{display:block;width:100%;height:34px;margin-top:10px}
+
+/* charts */
+.ch-h{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.ch-h h3{margin:0;font-size:26px}
+.ch-h .note{color:var(--fg3);font-size:11.5px;margin-top:8px;max-width:90ch}
+.cbox{position:relative;height:340px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:12px;font-size:11.5px;color:var(--fg2)}
+.legend i{display:inline-block;width:16px;height:3px;border-radius:2px;margin-right:7px;vertical-align:middle}
+.legend i.dash{background:repeating-linear-gradient(90deg,var(--fg) 0 5px,transparent 5px 8px)}
+.pulse{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--bright);box-shadow:0 0 12px 4px rgba(239,255,4,.75);pointer-events:none;z-index:2;display:none}
+.pulse::before,.pulse::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid var(--bright);animation:ring 2.2s cubic-bezier(.2,.6,.3,1) infinite}
+.pulse::after{animation-delay:1.1s}
+@keyframes ring{0%{transform:scale(1);opacity:.9}100%{transform:scale(4.4);opacity:0}}
+.pulse b{position:absolute;left:18px;top:-30px;white-space:nowrap;background:var(--bright);color:#000;font:800 11px/1 var(--body);padding:6px 8px;border-radius:6px;letter-spacing:.02em}
+
+/* spend */
+.spend{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:12px}
+.side{display:grid;gap:12px;align-content:start}
+.mer .v{font-size:60px;margin-top:10px}
+.chan{display:grid;gap:10px;margin-top:6px}
+.chan .r{display:grid;grid-template-columns:76px minmax(0,1fr) 96px;gap:10px;align-items:center;font-size:12px}
+.chan .r .t{height:8px;border-radius:99px;background:var(--s3);position:relative;overflow:hidden}
+.chan .r .t i{position:absolute;inset:0 auto 0 0;background:var(--yellow);border-radius:99px}
+.chan .r span:last-child{text-align:right;color:var(--fg2)}
+
+/* funnel: Shopify-style steps, each stage as a share of sessions */
+.fhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.fhead .v{font-size:56px}
+.fsteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
+.fst{position:relative;padding:16px 0 0 18px;min-width:0;display:flex;flex-direction:column}
+.fst+.fst{border-left:1px solid var(--line)}
+.fst:first-child{padding-left:0}
+.fst .top{display:flex;align-items:center;gap:12px}
+.emo{flex:none;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:22px;background:radial-gradient(circle at 30% 30%,#3a3410,#15140a);border:1px solid #4a4214;box-shadow:0 0 18px rgba(255,222,20,.18)}
+.fst .nm{font-size:13px;font-weight:700}
+.fst .pc{font-size:44px;margin-top:12px}
+.fst .ct{font-size:12px;color:var(--fg2);margin-top:6px}
+.fst .ct b{color:var(--fg)}
+.fst .step{display:inline-block;margin-top:8px;font-size:11px;color:var(--fg2);background:var(--s2);border:1px solid var(--line2);border-radius:999px;padding:4px 9px;align-self:flex-start}
+.fviz{position:relative;height:200px;margin-top:16px}
+.fviz .b{position:absolute;left:0;width:74%;bottom:0;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--yellow),#c9ae00);box-shadow:0 0 24px rgba(255,222,20,.18)}
+.fviz .g{position:absolute;left:0;width:74%;bottom:0;border:1.5px dashed #fff;border-bottom:0;border-radius:8px 8px 0 0;opacity:.75}
+.fviz .g span{position:absolute;right:6px;top:-18px;font-size:9.5px;font-weight:800;letter-spacing:.06em;background:#000;color:#fff;padding:1px 4px;border-radius:4px}
+.fviz svg{position:absolute;left:74%;width:calc(26% + 18px);height:100%;bottom:0;overflow:visible}
+.fviz .brk{position:absolute;left:-2px;width:calc(74% + 4px);height:7px;top:32%;background:var(--s1);transform:skewY(-6deg)}
+.sfl .fviz .brk{background:#0f0f0f}
+/* products */
+.tlist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.trow{display:grid;grid-template-columns:28px 52px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:8px 14px 8px 10px;text-decoration:none;color:inherit;transition:border-color .15s}
+.trow:hover{border-color:var(--yellow)}
+.trow .rk{font-family:var(--display);font-size:22px;color:var(--fg3);text-align:center}
+.trow img,.trow .noimg{width:52px;height:52px;border-radius:8px;background:#fff;object-fit:contain;display:block}
+.trow .nm{font-size:12.5px;font-weight:600;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.trow .sub{font-size:11px;color:var(--fg3);margin-top:3px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.trow .g{text-align:right;min-width:92px}
+.trow .g b{display:block;font-family:var(--display);font-size:26px;line-height:.85}
+.trow .g span{font-size:11px;color:var(--fg3)}
+.flag{display:inline-block;white-space:nowrap;border-radius:6px;padding:3px 6px;font-size:9.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
+.flag.low{background:var(--yellow);color:#000} .flag.out{background:var(--alert);color:#000}
+
+/* order fulfilment */
+.ful{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.ful .v{font-size:46px;margin-top:10px}
+.ful .v small{font-family:var(--body);font-size:15px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--yellow);margin-left:8px}
+.ful .t{margin-top:8px;font-size:12px;color:var(--fg2)}
+.age{margin-top:12px}
+.agebar{display:flex;height:44px;border-radius:10px;overflow:hidden;margin-top:14px;gap:2px}
+.agebar div{display:flex;align-items:center;padding-left:10px;font-weight:800;font-size:12px;color:#000;white-space:nowrap;overflow:hidden;min-width:0}
+.agekey{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px;font-size:11.5px;color:var(--fg2)}
+.agekey b{display:block;font-family:var(--display);font-size:26px;line-height:.85;color:var(--fg);margin-top:4px}
+.agekey i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.ftab{margin-top:12px}
+.ftab table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.ftab th{text-align:right;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--fg3);font-weight:700;padding:10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ftab td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+.ftab th:first-child,.ftab td:first-child{text-align:left}
+.ftab tr.tot td{font-weight:800;color:var(--fg)}
+.ftab .sw{overflow-x:auto}
+.foot{color:var(--fg3);font-size:11.5px;padding-block:22px 44px;line-height:1.65;max-width:150ch}
+.foot b{color:var(--fg2)}
+
+/* KPI drill-down */
+.kpi{cursor:pointer;transition:border-color .15s,transform .15s}
+.kpi:hover{border-color:#4a4a4a}
+.kpi.on{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow) inset}
+.kpi .hint{font-size:10px;color:var(--fg3);margin-top:8px;letter-spacing:.06em;text-transform:uppercase}
+.drill{margin-top:12px}
+.drill .cbox{height:360px}
+.closeb{background:#fff;color:#000;border-color:#fff;margin-left:6px}
+.closeb:hover{background:var(--yellow);border-color:var(--yellow);color:#000}
+.drill{scroll-margin-top:70px;border-color:var(--yellow)}
+
+/* ===== screen view (office TV, 16:9) ===== */
+body.scr-on .hero, body.scr-on .tabs{display:none}
+#screen{--u:min(1vw,1.7vh);height:100vh;overflow:hidden;background:radial-gradient(1200px 600px at 30% 40%,#121007 0%,#000 60%)}
+.scr{display:grid;grid-template-rows:auto auto auto auto minmax(0,1fr);gap:calc(var(--u)*.75);height:100%;padding:calc(var(--u)*1.1) calc(var(--u)*1.4) calc(var(--u)*1.3)}
+.sbar{display:grid;grid-template-columns:auto 1fr auto auto auto;align-items:center;gap:calc(var(--u)*2);background:var(--yellow);color:#000;border-radius:calc(var(--u)*.9);padding:calc(var(--u)*.8) calc(var(--u)*1.2) calc(var(--u)*.8) calc(var(--u)*1.6);position:relative;overflow:hidden}
+.sbar h1{margin:0;font-size:calc(var(--u)*2.7)}
+.sbar .dt{font-weight:700;font-size:calc(var(--u)*1.05);letter-spacing:.02em}
+.sbar .dt span{display:block;font-weight:500;opacity:.7;font-size:calc(var(--u)*.9);margin-top:calc(var(--u)*.15)}
+.sbar .clk{font-family:var(--display);font-size:calc(var(--u)*3);line-height:.8;text-align:right}
+.sbar .clk span{display:block;font-family:var(--body);font-size:calc(var(--u)*.75);font-weight:700;letter-spacing:.1em;margin-top:calc(var(--u)*.35);opacity:.75}
+.sbar svg{width:calc(var(--u)*3.6);height:calc(var(--u)*3.6)}
+.sbar::after{content:"";position:absolute;right:calc(var(--u)*5.6);top:-30%;bottom:-30%;width:calc(var(--u)*.12);background:#000;transform:rotate(10deg)}
+.tick{display:flex;align-items:center;gap:calc(var(--u)*.8);background:#0a0a0a;border:1px solid #2b2610;border-radius:calc(var(--u)*.5);padding:calc(var(--u)*.3) calc(var(--u)*.6);overflow:hidden}
+.tick .tag{flex:none;display:flex;align-items:center;gap:calc(var(--u)*.35);background:var(--yellow);color:#000;font-weight:800;font-size:calc(var(--u)*.55);letter-spacing:.12em;text-transform:uppercase;padding:calc(var(--u)*.22) calc(var(--u)*.55);border-radius:99px;position:relative;z-index:1}
+.tick .tag i{width:calc(var(--u)*.4);height:calc(var(--u)*.4);border-radius:50%;background:#000;animation:blink 1.6s infinite}
+.tick .mqw{flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent);mask-image:linear-gradient(90deg,transparent,#000 3%,#000 97%,transparent)}
+.tick .mq{display:flex;width:max-content;animation:mq var(--mqd,70s) linear infinite}
+.tick .mq span.it{display:inline-flex;align-items:center;gap:calc(var(--u)*.45);white-space:nowrap;font-size:calc(var(--u)*.72);font-weight:600;color:var(--fg2);padding-right:calc(var(--u)*2.4)}
+.tick .mq span.it b{font-size:calc(var(--u)*.52);font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.tick .mq span.it.up b{color:var(--teal)} .tick .mq span.it.down b{color:var(--alert)}
+.tick .mq span.it img{height:calc(var(--u)*1.05);width:calc(var(--u)*1.05);border-radius:calc(var(--u)*.2);background:#fff;object-fit:contain}
+.tick .mq span.it::after{content:"◆";color:var(--yellow);font-size:calc(var(--u)*.45);margin-left:calc(var(--u)*2.4)}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.tv{gap:calc(var(--u)*.75)!important}
+.tv .card{border-radius:calc(var(--u)*.8);padding:calc(var(--u)*.85) calc(var(--u)*1.1);background:rgba(15,15,15,.92);border-color:#232323}
+.tv .lbl{font-size:calc(var(--u)*.6)}
+.tv .pc .big{font-size:calc(var(--u)*3.1);margin-top:calc(var(--u)*.45)}
+.tv .pc .meta{font-size:calc(var(--u)*.68);margin-top:calc(var(--u)*.5)}
+.tv .pc .say{font-size:calc(var(--u)*.7);margin-top:calc(var(--u)*.4);line-height:1.4}
+.tv .track{height:calc(var(--u)*.55);margin-top:calc(var(--u)*.8)}
+.tv .track .mk{top:calc(var(--u)*-.3);bottom:calc(var(--u)*-.3)}
+.tv .track .mk span{font-size:calc(var(--u)*.48);top:calc(var(--u)*-.9)}
+.tv .mini{height:calc(var(--u)*1.9);margin-top:calc(var(--u)*.4)}
+.tv .chip{font-size:calc(var(--u)*.55);padding:calc(var(--u)*.25) calc(var(--u)*.6)}
+.tv .pc div[id$="c"]{margin-top:calc(var(--u)*.45)!important}
+.tv .kpi{padding:calc(var(--u)*.75) calc(var(--u)*.95);cursor:default}
+.tv .kpi .v{font-size:calc(var(--u)*2.2);margin-top:calc(var(--u)*.4)}
+.tv .kpi .d{font-size:calc(var(--u)*.64);margin-top:calc(var(--u)*.35)}
+.tv .kpi svg{height:calc(var(--u)*1.5);margin-top:calc(var(--u)*.4)}
+.tv .kpi .hint{display:none}
+#screen .scard{padding:calc(var(--u)*.75) calc(var(--u)*1.1)}
+#screen .schart-h{flex-wrap:nowrap}
+#screen .schart-h h2{font-size:calc(var(--u)*1.5);white-space:nowrap}
+#screen .slegend{font-size:calc(var(--u)*.62);gap:calc(var(--u)*1.1);flex:1;justify-content:center}
+.smain{display:grid;grid-template-columns:minmax(0,2.75fr) minmax(0,1fr);gap:calc(var(--u)*1);min-height:0}
+.scard{background:rgba(15,15,15,.92);border:1px solid #232323;border-radius:calc(var(--u)*.9);padding:calc(var(--u)*.95) calc(var(--u)*1.2);min-width:0;min-height:0;display:flex;flex-direction:column;position:relative}
+.scard .lbl{font-size:calc(var(--u)*.75);letter-spacing:.14em}
+.schart-h{display:flex;justify-content:space-between;align-items:center;gap:calc(var(--u)*1)}
+.schart-h h2{margin:0;font-size:calc(var(--u)*2)}
+.schart-h .seg .pill{font-size:calc(var(--u)*.7);padding:calc(var(--u)*.45) calc(var(--u)*.8)}
+.schart{position:relative;flex:1;min-height:0;margin-top:calc(var(--u)*.6)}
+.slegend{display:flex;gap:calc(var(--u)*1.6);font-size:calc(var(--u)*.8);color:var(--fg2);margin-top:calc(var(--u)*.5)}
+.slegend i{display:inline-block;width:calc(var(--u)*1.4);height:calc(var(--u)*.22);border-radius:2px;margin-right:calc(var(--u)*.5);vertical-align:middle}
+.slegend i.dash{background:repeating-linear-gradient(90deg,#fff 0 calc(var(--u)*.35),transparent calc(var(--u)*.35) calc(var(--u)*.55))}
+.sright{display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:calc(var(--u)*.8);min-height:0}
+.sbig{font-size:calc(var(--u)*4.2);margin-top:calc(var(--u)*.5)}
+.smid{font-size:calc(var(--u)*2.7);margin-top:calc(var(--u)*.45)}
+.ssub{font-size:calc(var(--u)*.9);color:var(--fg2);margin-top:calc(var(--u)*.5);line-height:1.45}
+.ssub b{color:var(--fg)}
+.scard .track{height:calc(var(--u)*.7);margin-top:calc(var(--u)*1.2)}
+.scard .track .mk span{display:none;font-size:calc(var(--u)*.6);top:-calc(var(--u)*1.1)}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:calc(var(--u)*.5) calc(var(--u)*.8);align-content:center;padding-block:calc(var(--u)*.7)}
+.stats .v{font-size:calc(var(--u)*1.75);margin-top:calc(var(--u)*.25)}
+.stats .d{font-size:calc(var(--u)*.75);margin-top:calc(var(--u)*.25);color:var(--fg2)}
+.sbot{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(0,1fr) minmax(0,.75fr);gap:calc(var(--u)*1);height:22vh;min-height:150px}
+.sprod{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:calc(var(--u)*.8);margin-top:calc(var(--u)*.7);flex:1;min-height:0}
+.sprod a{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;background:#151515;border-radius:calc(var(--u)*.6);overflow:hidden;text-decoration:none;color:inherit;min-height:0}
+.sprod .im{background:#fff;position:relative;min-height:0}
+.sprod .im img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.sprod .im .rk{position:absolute;left:calc(var(--u)*.4);top:calc(var(--u)*.4);background:#000;color:var(--yellow);font-family:var(--display);font-size:calc(var(--u)*1.1);padding:calc(var(--u)*.25) calc(var(--u)*.4) calc(var(--u)*.15);border-radius:calc(var(--u)*.3);z-index:1}
+.sprod .im .flag{position:absolute;right:calc(var(--u)*.4);top:calc(var(--u)*.4);z-index:1;font-size:calc(var(--u)*.6)}
+.sprod .tx{padding:calc(var(--u)*.45) calc(var(--u)*.55)}
+.sprod .tx div{font-size:calc(var(--u)*.7);color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sprod .tx b{font-family:var(--display);font-size:calc(var(--u)*1.4);line-height:.9}
+.sfun{display:grid;gap:calc(var(--u)*.45);margin-top:calc(var(--u)*.7)}
+.sfun .r{display:grid;grid-template-columns:calc(var(--u)*7.2) minmax(0,1fr) calc(var(--u)*4);gap:calc(var(--u)*.6);align-items:center;font-size:calc(var(--u)*.8);color:var(--fg2)}
+.sfun .r .t{height:calc(var(--u)*.7);background:#262626;border-radius:99px;position:relative}
+.sfun .r .t i{position:absolute;inset:0 auto 0 0;border-radius:99px;background:var(--yellow)}
+.sfun .r .t u{position:absolute;top:-calc(var(--u)*.25);bottom:-calc(var(--u)*.25);width:calc(var(--u)*.12);background:#fff}
+.sfun .r b{font-family:var(--display);font-size:calc(var(--u)*1.3);text-align:right;color:var(--fg)}
+.sbar .back{appearance:none;border:1.5px solid #000;background:#000;color:var(--yellow);border-radius:999px;font:800 calc(var(--u)*.72)/1 var(--body);letter-spacing:.08em;text-transform:uppercase;padding:calc(var(--u)*.55) calc(var(--u)*.9);cursor:pointer;white-space:nowrap}
+.sbar .back:hover{background:transparent;color:#000}
+#spulse b{font-size:calc(var(--u)*1.05);padding:calc(var(--u)*.4) calc(var(--u)*.55);top:calc(var(--u)*-2.4);left:calc(var(--u)*1.4)}
+.sfl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:calc(var(--u)*.5);flex:1;min-height:0}
+.sfl>div{display:grid;grid-template-rows:auto minmax(0,1fr);min-height:0;padding-left:calc(var(--u)*.6);border-left:1px solid #262626}
+.sfl>div:first-child{padding-left:0;border-left:0}
+.sfl .h{display:flex;align-items:center;gap:calc(var(--u)*.4)}
+.sfl .h .emo{width:calc(var(--u)*1.6);height:calc(var(--u)*1.6);font-size:calc(var(--u)*.85);box-shadow:none}
+.sfl .h b.k{display:block;font-family:var(--display);font-size:calc(var(--u)*1.35);line-height:.85}
+.sfl .h span{display:block;font-size:calc(var(--u)*.58);color:var(--fg2);margin-top:calc(var(--u)*.15)}
+.sfl .fviz{height:auto;margin-top:calc(var(--u)*.5);min-height:calc(var(--u)*2)}
+
+@media(max-width:1200px){.kpis{grid-template-columns:repeat(3,minmax(0,1fr))}.spend{grid-template-columns:minmax(0,1fr)}.ful{grid-template-columns:repeat(2,minmax(0,1fr))}.fl{grid-template-columns:repeat(2,minmax(0,1fr))}.fcol,.fover{padding:14px!important;border-left:0!important;border-top:1px solid var(--line)}.fcol .arrow{display:none}}
+@media(max-width:760px){.grid3{grid-template-columns:minmax(0,1fr)}.hero h1{font-size:44px}.roundel{width:56px;height:56px}.hero::after{right:80px}.hero .wrap{padding-right:max(96px,env(safe-area-inset-right,0px))}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tlist{grid-template-columns:minmax(0,1fr)}.fsteps{grid-template-columns:repeat(2,minmax(0,1fr))}.fst:nth-child(3){padding-left:0;border-left:0}.fst .pc{font-size:34px}.ful,.agekey{grid-template-columns:repeat(2,minmax(0,1fr))}.fl{grid-template-columns:minmax(0,1fr)}
+  .pc .big{font-size:54px}.kpi .v{font-size:34px}.cbox{height:280px}.tabs .fresh{margin-left:0;width:100%}.seg+.seg{margin-left:0}
+  #screen{height:auto;overflow:visible}.scr{height:auto}.smain,.sbot{grid-template-columns:minmax(0,1fr);height:auto}.schart{min-height:300px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="hero"><div class="wrap">
+  <div class="brand">JD Sports Canada · Ecommerce</div>
+  <h1 class="dsp">Black Friday<span>Control Room</span></h1>
+  <div class="meta" id="hmeta"></div>
+  <svg class="roundel" viewBox="0 0 144 144" role="img" aria-label="JD Sports"><use href="#rd"></use></svg>
+</div></div>
+
+<nav class="tabs"><div class="wrap">
+  <button class="pill on" id="t-live" data-view="live">Live</button>
+  <button class="pill" id="t-screen" data-view="screen">Dashboard view</button>
+  <span class="fresh" id="fresh"></span>
+</div></nav>
+
+<main id="live">
+  <section class="wrap">
+    <div class="grid3">
+      <div class="card pc lead">
+        <div class="lbl">Total revenue vs target</div>
+        <div class="big dsp num" id="p-rev"></div>
+        <div class="track"><div class="fill" id="p-fill"></div><div class="mk" id="p-now"><span>Pace now</span></div></div>
+        <div class="meta"><span>Target <b id="p-tgt"></b></span><span><b id="p-pct"></b> banked</span><span>LY by now <b id="p-lyn"></b></span></div>
+        <div class="say" id="p-gap"></div>
+      </div>
+      <div class="card pc">
+        <div class="lbl">Predicted end-of-day revenue</div>
+        <div class="big dsp num" id="p-pred"></div>
+        <svg class="mini" id="p-path" viewBox="0 0 300 46" preserveAspectRatio="none" aria-label="How the prediction moved through the day"></svg>
+        <div class="meta"><span>vs target <b id="p-pvt"></b></span><span>vs LY full day <b id="p-pvl"></b></span></div>
+        <div class="say" id="p-pnote"></div>
+      </div>
+      <div class="card pc">
+        <div class="lbl" id="p-lh-l"></div>
+        <div class="big dsp num" id="p-lh"></div>
+        <div class="meta"><span>Hour target <b id="p-lht"></b></span><span>Last year <b id="p-lhl"></b></span></div>
+        <div class="say" id="p-lhn"></div>
+        <div style="margin-top:12px" id="p-lhc"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="kpis" id="kpis"></div>
+    <div class="card drill" id="drill" hidden><div class="ch-h"><div><h3 class="dsp" id="dr-t"></h3><div class="note" id="dr-n"></div></div><div class="seg" id="dr-seg"><button class="pill sm" data-dm="cum">Running total</button><button class="pill sm on" data-dm="hr">Per hour</button><button class="pill sm closeb" id="dr-x" aria-label="Close the hourly view">✕ Close</button></div></div><div class="cbox"><canvas id="cDr"></canvas></div><div class="legend"><span><i style="background:var(--yellow);height:4px"></i>Today</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span id="dr-tl"><i class="dash"></i>Target</span></div></div>
+    <p class="lbl" style="margin:12px 0 0;font-weight:600;letter-spacing:.06em" id="kpinote"></p>
+  </section>
+
+  <section class="wrap">
+    <div class="card">
+      <div class="ch-h">
+        <div><h3 class="dsp">Revenue pacing</h3><div class="note" id="rnote"></div></div>
+        <div class="seg"><button class="pill sm on" data-rm="cum">Running total</button><button class="pill sm" data-rm="hr">Revenue per hour</button></div>
+      </div>
+      <div class="cbox"><canvas id="cRev" aria-label="Total revenue by hour against target and last year"></canvas><div class="pulse" id="pulse"><b id="pulseT"></b></div></div>
+      <div class="legend"><span><i style="background:var(--yellow);height:4px;box-shadow:0 0 8px rgba(255,222,20,.7)"></i>Today</span><span><i class="dash"></i>Target (PRM, spread over last year's hours)</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span><i style="background:var(--teal)"></i>Email / SMS send</span><span><i style="background:var(--alert)"></i>Alert</span></div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="sh"><div><h2 class="dsp">Spend and MER</h2><p id="spnote"></p></div>
+      <div><div class="seg"><button class="pill sm on" data-ch="total">Total</button><button class="pill sm" data-ch="google">Google</button><button class="pill sm" data-ch="meta">Meta</button></div><div class="seg"><button class="pill sm on" data-sm="cum">Running total</button><button class="pill sm" data-sm="hr">Per hour</button></div></div></div>
+    <div class="spend">
+      <div class="card"><div class="cbox"><canvas id="cSp" aria-label="Paid spend against budget and last year"></canvas><div class="pulse" id="sppulse"><b id="sppulseT"></b></div></div><div class="legend" id="slegend"></div></div>
+      <div class="side">
+        <div class="card"><div class="lbl">Spend vs daily budget</div><div class="dsp num" style="font-size:46px;margin-top:10px" id="sp-v"></div>
+          <div class="track"><div class="fill" id="sp-fill"></div><div class="mk" id="sp-fc"><span>Forecast</span></div></div>
+          <div class="chan" id="chan" style="margin-top:16px"></div></div>
+        <div class="card mer"><div class="lbl">Live MER · Shopify total sales ÷ paid spend</div><div class="v dsp num" id="mer-v"></div><div style="font-size:12.5px;color:var(--fg2);margin-top:8px" id="mer-n"></div><div style="margin-top:12px" id="mer-c"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="sh"><div><h2 class="dsp">Checkout funnel</h2><p id="funnote"></p></div></div>
+    <div class="card"><div id="fl"></div>
+      <div class="legend"><span><i style="background:var(--yellow);height:8px"></i>Today so far</span><span><i style="border:1.5px dashed #fff;background:none;height:8px"></i>Same hours last year</span><span>The sessions bar is cut so the later stages stay readable</span></div></div>
+  </section>
+
+  <section class="wrap">
+    <div class="sh"><div><h2 class="dsp">Top 10 products</h2><p>By sales before returns, today so far, against the same hours last year. Stock flags use total units on hand across all locations.</p></div></div>
+    <div class="tlist" id="top"></div>
+  </section>
+
+  <section class="wrap">
+    <div class="sh"><div><h2 class="dsp">Trending</h2><p id="trnote"></p></div></div>
+    <div class="tlist" id="trend"></div>
+  </section>
+
+  <section class="wrap">
+    <div class="sh"><div><h2 class="dsp">Order fulfilment</h2><p id="opsnote"></p></div></div>
+    <div class="ful" id="ful"></div>
+    <div class="card age" id="age"></div>
+    <div class="card ftab"><div class="sw"><table id="ftab"></table></div></div>
+  </section>
+
+  <div class="wrap foot" id="foot"></div>
+</main>
+
+<main id="screen" hidden>
+  <div class="scr">
+    <div class="sbar">
+      <h1 class="dsp">Black Friday Control Room</h1>
+      <div class="dt" id="s-date"></div>
+      <div class="clk" id="s-clk"></div>
+      <button class="back" data-view="live">← Live view</button>
+      <svg viewBox="0 0 144 144" aria-hidden="true"><use href="#rd"></use></svg>
+    </div>
+    <div class="tick"><div class="tag"><i></i>Live</div><div class="mqw"><div class="mq" id="s-mq"></div></div></div>
+    <div class="grid3 tv" id="s-pace"></div>
+    <div class="kpis tv" id="s-kpis"></div>
+    <div class="scard">
+      <div class="schart-h"><h2 class="dsp" id="s-ct">Revenue pacing</h2><div class="slegend" style="margin:0"><span><i style="background:var(--yellow);box-shadow:0 0 8px rgba(255,222,20,.8)"></i>Today</span><span><i class="dash"></i>Target</span><span><i style="background:var(--fg3)"></i>Last year</span><span><i style="background:var(--teal)"></i>Email / SMS</span><span><i style="background:var(--alert)"></i>Alert</span></div><div class="seg"><button class="pill sm on" data-srm="cum">Running total</button><button class="pill sm" data-srm="hr">Per hour</button></div></div>
+      <div class="schart"><canvas id="cScr"></canvas><div class="pulse" id="spulse"><b id="spulseT"></b></div></div>
+    </div>
+  </div>
+</main>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="rd" viewBox="0 0 144 144"><path fill="currentColor" d="M 88.144531 52.375 L 81.914062 91.605469 C 81.914062 91.605469 105.574219 95.359375 109.203125 72.070312 C 112.828125 48.777344 88.144531 52.375 88.144531 52.375"/><path fill="currentColor" d="M 72 0 C 32.234375 0 0 32.234375 0 72 C 0 111.765625 32.234375 144 72 144 C 111.765625 144 144 111.765625 144 72 C 144 52.90625 136.414062 34.589844 122.910156 21.089844 C 109.410156 7.585938 91.097656 0 72 0 M 21.121094 108.078125 L 23.359375 91.359375 C 50.320312 91.359375 54.878906 36.238281 54.878906 36.238281 L 72 36.238281 C 59.839844 115.359375 21.121094 108.078125 21.121094 108.078125 M 87.121094 106.160156 L 63.121094 106.160156 L 74.878906 36.078125 L 98.878906 36.078125 C 121.28125 36.078125 129.601562 53.597656 126.71875 71.199219 C 124.1875 91.152344 107.230469 106.117188 87.121094 106.160156"/></symbol></svg>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script id="model" type="application/json">/*__MODEL__*/</script>
+<script>
+(function(){
+const M = JSON.parse(document.getElementById('model').textContent);
+const H = M.hours, NOW = M.now_h, DONE = M.done_h, NOWX = M.now_h + M.now_m/60;
+const $ = id => document.getElementById(id);
+const C = {y:'#FFDE14', b:'#EFFF04', t:'#43D5B0', a:'#FF6B4A', fg:'#FFFFFF', fg2:'#C9C9C9', fg3:'#8A8B8C'};
+const sum = (a,n) => a.slice(0, n==null?a.length:n).reduce((x,y)=>x+(+y||0),0);
+const cum = a => { let t=0; return a.map(x => t += (+x||0)); };
+const K$ = v => { if(v==null||isNaN(v)) return '–'; const a=Math.abs(v), s=v<0?'-':''; return a>=1e6 ? s+'$'+(a/1e6).toFixed(2)+'M' : a>=10000 ? s+'$'+(a/1000).toFixed(1).replace(/\.0$/,'')+'K' : s+'$'+Math.round(a).toLocaleString('en-CA'); };
+const D$ = v => (v<0?'-':'')+'$'+Math.round(Math.abs(v)).toLocaleString('en-CA');
+const pct = (v,d=1) => v==null||!isFinite(v) ? '–' : (v*100).toFixed(d)+'%';
+const dl = (a,b) => b ? a/b-1 : null;
+const arrow = (d, s='vs LY') => d==null ? '' : `<b class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d*100).toFixed(1)}%</b> ${s}`;
+const pts = (a,b,s='vs LY') => { const d=(a-b)*100; return `<b class="${d>=0?'up':'down'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2)} pts</b> ${s}`; };
+const h12 = h => { h = ((h%24)+24)%24; return (h%12||12)+(h<12?'am':'pm'); };
+const hl = h => (h<10?'0':'')+h+':00';
+const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const K = M.kpi, SP = M.spend, MER = M.mer, P = M.products;
+const dateTxt = new Date(M.date+'T12:00:00').toLocaleDateString('en-CA',{weekday:'long',month:'long',day:'numeric'});
+const lyTxt = new Date(M.ly_date+'T12:00:00').toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+const upd = M.pulled.slice(11);
+const totNow = sum(H.total), tgtNow = sum(H.target, DONE) + H.target[NOW]*(M.now_m/60), lyNow = sum(H.ly_total, DONE) + H.ly_total[NOW]*(M.now_m/60);
+const gap = totNow - tgtNow;
+
+// ---------- header
+$('hmeta').innerHTML = `<span class="live-dot"><i></i>Live</span><span><b>${dateTxt}</b></span><span>Phase <b>${esc(M.phase||'–')}</b></span><span>Spend plan <b>${esc(SP.day_type||'–')}</b></span><span>Compared with <b>${lyTxt}</b></span>`;
+$('fresh').innerHTML = `Updated <b>${upd} PT</b> · refreshes hourly`;
+
+// ---------- pace strip
+$('p-rev').textContent = D$(totNow);
+const wMax = Math.max(M.target_day, M.pred) * 1.04;
+$('p-fill').style.width = Math.min(100, totNow/wMax*100)+'%';
+$('p-now').style.left = Math.min(100, tgtNow/wMax*100)+'%';
+$('p-tgt').textContent = K$(M.target_day); $('p-pct').textContent = pct(totNow/M.target_day,0); $('p-lyn').textContent = K$(lyNow);
+$('p-gap').innerHTML = `${gap>=0?`<b class="up">${K$(gap)} ahead</b>`:`<b class="warn">${K$(-gap)} behind</b>`} of where the target expects us at ${h12(NOW).replace(/(am|pm)/,':'+String(M.now_m).padStart(2,'0')+'$1')}. ${arrow(dl(totNow, lyNow),'on last year at this time')}.`;
+$('p-pred').textContent = D$(M.pred);
+$('p-pvt').innerHTML = `<span class="${M.pred>=M.target_day?'up':'warn'}">${pct(M.pred/M.target_day,0)}</span>`;
+$('p-pvl').innerHTML = `<span class="${M.pred>=M.ly_total_day?'up':'down'}">${M.pred>=M.ly_total_day?'+':''}${pct(M.pred/M.ly_total_day-1,0)}</span>`;
+$('p-pnote').innerHTML = `The rest of the day needs <b>${K$(M.need_rest)}</b> an hour to hit target. Line above: how the prediction moved hour by hour, against the target (dashed). Expected JESTA ${K$(M.jesta.expected)} (proxy, hourly JESTA TBC).`;
+(function(){ const pp = M.pred_path; if(pp.length<2) return; const vals = pp.map(p=>p.v).concat([M.target_day]); const mx=Math.max(...vals)*1.05, mn=Math.min(...vals)*.9;
+  const X = h => (h-pp[0].h)/(Math.max(1,pp[pp.length-1].h-pp[0].h))*292+4, Y = v => 42-(v-mn)/(mx-mn)*38;
+  const d = pp.map((p,i)=>(i?'L':'M')+X(p.h).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
+  $('p-path').innerHTML = `<line x1="0" x2="300" y1="${Y(M.target_day)}" y2="${Y(M.target_day)}" stroke="#fff" stroke-opacity=".7" stroke-dasharray="4 4" stroke-width="1" vector-effect="non-scaling-stroke"/><path d="${d}" fill="none" stroke="${C.y}" stroke-width="2" vector-effect="non-scaling-stroke"/>`; })();
+const LH = DONE-1;
+$('p-lh-l').textContent = `Last full hour · ${h12(LH)} to ${h12(LH+1)}`;
+$('p-lh').textContent = D$(H.total[LH]);
+$('p-lht').textContent = D$(H.target[LH]); $('p-lhl').textContent = D$(H.ly_total[LH]);
+const lhCvr = H.sessions[LH] ? H.cc[LH]/H.sessions[LH] : 0, lyCvr = H.ly_sessions[LH] ? H.ly_cc[LH]/H.ly_sessions[LH] : 0;
+$('p-lhn').innerHTML = `${Math.round(H.orders[LH])} orders from ${Math.round(H.sessions[LH]).toLocaleString('en-CA')} sessions, conversion ${pct(lhCvr,2)} (${pts(lhCvr,lyCvr)}). Returns posted in the hour: ${D$(-H.returns[LH])}.`;
+const lhr = H.total[LH]/(H.target[LH]||1);
+$('p-lhc').innerHTML = lhr>=1 ? '<span class="chip good">Beat the hour target</span>' : lhr>=.85 ? '<span class="chip mid">Close to the hour target</span>' : '<span class="chip bad">Missed the hour target</span>';
+
+// ---------- KPI row (completed hours, today vs LY; grey line in each sparkline is last year)
+const cvr = [K.cc[0]/K.sessions[0], K.cc[1]/K.sessions[1]];
+const nT = M.nr.today, nL = M.nr.ly;
+const newSh = [nT.New[0]/(nT.New[0]+nT.Returning[0]), nL.New[0]/(nL.New[0]+nL.Returning[0])];
+function spark(a, b){ const n=DONE, A=a.slice(0,n), B=b.slice(0,n), all=A.concat(B), mx=Math.max(...all), mn=Math.min(...all);
+  const P_ = arr => arr.map((v,i)=>[i/(n-1||1)*100, 32-(v-mn)/(mx-mn||1)*30]); const path = p => p.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
+  const pa = P_(A), pb = P_(B);
+  return `<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><path d="${path(pb)}" fill="none" stroke="${C.fg3}" stroke-width="1.2" vector-effect="non-scaling-stroke"/><path d="${path(pa)} L100 34 L0 34 Z" fill="rgba(255,222,20,.10)"/><path d="${path(pa)}" fill="none" stroke="${C.y}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`; }
+const rate = (n,d) => n.map((x,i)=>d[i]?x/d[i]:0);
+const kp = [
+  ['Orders', Math.round(K.orders[0]).toLocaleString('en-CA'), arrow(dl(K.orders[0],K.orders[1])), spark(H.orders, H.ly_orders)],
+  ['AOV', '$'+K.aov[0].toFixed(0), arrow(dl(K.aov[0],K.aov[1])), spark(rate(H.total,H.orders), rate(H.ly_total,H.ly_orders))],
+  ['Conversion', pct(cvr[0],2), pts(cvr[0],cvr[1]), spark(rate(H.cc,H.sessions), rate(H.ly_cc,H.ly_sessions))],
+  ['Sessions', Math.round(K.sessions[0]).toLocaleString('en-CA'), arrow(dl(K.sessions[0],K.sessions[1])), spark(H.sessions, H.ly_sessions)],
+  ['New customers', pct(newSh[0],0), pts(newSh[0],newSh[1]), `<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="6" width="100" height="9" rx="4" fill="#222"/><rect x="0" y="6" width="${newSh[0]*100}" height="9" rx="4" fill="${C.y}"/><rect x="0" y="21" width="100" height="5" rx="2.5" fill="#222"/><rect x="0" y="21" width="${newSh[1]*100}" height="5" rx="2.5" fill="${C.fg3}"/></svg>`],
+];
+const kKeys = ['orders','aov','cvr','sessions',null];
+$('kpis').innerHTML = kp.map((k,i) => `<div class="card kpi" ${kKeys[i]?`data-k="${kKeys[i]}" role="button" tabindex="0"`:''}><div class="lbl">${k[0]}</div><div class="v dsp num">${k[1]}</div><div class="d">${k[2]}</div>${k[3]}${kKeys[i]?'<div class="hint">Click for hourly view</div>':''}</div>`).join('');
+$('kpinote').textContent = `Today so far, to ${upd}, against ${lyTxt} to the same time. Grey line in each sparkline is last year. Click a card to open it by hour; click again, press Esc or click anywhere else to close. New customers is their share of total revenue.`;
+
+// ---------- chart plumbing
+Chart.defaults.font.family = "'Inter Tight', Arial, sans-serif"; Chart.defaults.font.size = 11; Chart.defaults.color = C.fg3;
+Chart.defaults.plugins.legend.display = false;
+Object.assign(Chart.defaults.plugins.tooltip, {backgroundColor:'#161616', borderColor:'#3a3a3a', borderWidth:1, titleColor:'#fff', bodyColor:C.fg2, padding:10, cornerRadius:8});
+const glow = { id:'glow', beforeDatasetDraw(ch, a){ const ds = ch.data.datasets[a.index]; if(!ds.glow) return; const c=ch.ctx; c.save(); c.shadowColor='rgba(255,222,20,.75)'; c.shadowBlur=ds.glow; },
+  afterDatasetDraw(ch, a){ if(ch.data.datasets[a.index].glow) ch.ctx.restore(); } };
+const notesPlug = { id:'notes', afterDatasetsDraw(ch, a, o){ if(!o.list) return; const {ctx:c, chartArea:ca, scales:{x}} = ch; c.save(); const fs = o.size||10.5; c.font = `700 ${fs}px 'Inter Tight', Arial, sans-serif`;
+  const rows = []; o.list.forEach(n => { const px = x.getPixelForValue(n.h); if(px<ca.left||px>ca.right) return; const col = n.type==='send'?C.t:n.type==='good'?C.y:C.a;
+    const w = c.measureText(n.label).width + fs*1.4, hgt = fs*2, left = px > ca.right - w ? px - w : px;
+    let r = 0; while(rows[r]!=null && rows[r] > left - 6) r++; rows[r] = left + w;
+    const y = ca.top + 2 + r*(hgt+5);
+    c.strokeStyle = col; c.globalAlpha=.45; c.setLineDash([3,3]); c.lineWidth=1; c.beginPath(); c.moveTo(px, y+hgt); c.lineTo(px, ca.bottom); c.stroke(); c.setLineDash([]); c.globalAlpha=1;
+    c.fillStyle = col; c.beginPath(); if(c.roundRect) c.roundRect(left, y, w, hgt, hgt/2); else c.rect(left, y, w, hgt); c.fill();
+    c.fillStyle = '#000'; c.textBaseline='middle'; c.fillText(n.label, left + fs*.7, y + hgt/2 + .5); });
+  c.restore(); } };
+const nowShade = { id:'nowshade', beforeDatasetsDraw(ch, a, o){ if(o.x==null) return; const {ctx:c, chartArea:ca, scales:{x}} = ch; const px = x.getPixelForValue(o.x); c.save(); const g = c.createLinearGradient(px-80,0,px,0); g.addColorStop(0,'rgba(255,222,20,0)'); g.addColorStop(1,'rgba(255,222,20,.08)'); c.fillStyle=g; c.fillRect(px-80, ca.top, 80, ca.bottom-ca.top); c.restore(); } };
+Chart.register(glow, notesPlug, nowShade);
+const grid = {color:'#1d1d1d', drawTicks:false};
+const xS = (fs=11) => ({type:'linear', min:0, max:24, grid:{display:false}, border:{color:'#2a2a2a'}, ticks:{stepSize:2, callback:v=>v===24?'':h12(v), color:C.fg3, padding:8, font:{size:fs}}});
+const yS = (fs=11) => ({beginAtZero:true, grid, border:{display:false}, ticks:{callback:v=>K$(v), padding:10, font:{size:fs}, maxTicksLimit:7}});
+const series = (arr, mode, upto) => { if(mode==='cum'){ const c = cum(arr); const o=[{x:0,y:0}]; c.forEach((v,i)=>{ if(upto==null||i<upto) o.push({x:i+1,y:v}); }); return o; } return arr.map((v,i)=>({x:i+.5,y:v})).filter((p,i)=>upto==null||i<upto); };
+function todaySeries(arr, mode){
+  if(mode==='cum'){ const s = series(arr,'cum',DONE); s.push({x:NOWX, y:sum(arr)}); return s; }
+  const s = series(arr,'hr',DONE); if(M.now_m>=10) s.push({x:NOW+.5, y:arr[NOW]/(M.now_m/60), proj:true}); return s; }
+function revDatasets(mode, big){
+  return [
+    {label:'Today', data:todaySeries(H.total, mode), borderColor:C.y,
+      backgroundColor:ctx => { const {ctx:c, chartArea} = ctx.chart; if(!chartArea) return 'rgba(255,222,20,.1)'; const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); g.addColorStop(0,'rgba(255,222,20,.30)'); g.addColorStop(1,'rgba(255,222,20,0)'); return g; },
+      fill: 'origin', borderWidth:big?5:3.5, pointRadius: mode==='hr' ? (big?4:3) : 0, pointBackgroundColor:C.y, pointBorderWidth:0, tension:.32, glow: big?24:14,
+      segment:{borderDash: c => c.p1 && c.p1.raw && c.p1.raw.proj ? [6,6] : undefined}},
+    {label:'Target', data:series(H.target, mode), borderColor:'#fff', borderDash:[7,6], borderWidth:big?2.4:1.8, pointRadius:0, tension:.32},
+    {label:'Last year', data:series(H.ly_total, mode), borderColor:C.fg3, borderWidth:big?2.4:1.8, pointRadius:0, tension:.32},
+  ];
+}
+function placePulse(ch, el, txtEl, mode){ const meta = ch.getDatasetMeta(0); const pt = meta.data[meta.data.length-1]; if(!pt){ el.style.display='none'; return; }
+  el.style.display='block'; el.style.left = pt.x+'px'; el.style.top = pt.y+'px';
+  const raw = ch.data.datasets[0].data.slice(-1)[0]; txtEl.textContent = mode==='cum' ? `${K$(raw.y)} at ${upd}` : `${K$(raw.y)} an hour, pace so far`;
+  const right = pt.x > ch.chartArea.right - 170; txtEl.style.left = right ? 'auto' : '18px'; txtEl.style.right = right ? '18px' : 'auto'; }
+const FS = k => { const u = Math.min(innerWidth/100, innerHeight*1.7/100); return Math.max(10, Math.round(u*k)); };
+function revChart(canvas, mode, big, pulseEl, pulseT){
+  return new Chart(canvas, {type:'line', data:{datasets:revDatasets(mode, big)}, options:{responsive:true, maintainAspectRatio:false, parsing:false, animation:{duration:big?0:600},
+    interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:4, right:big?20:12}},
+    scales:{x:xS(big?FS(.78):11), y:yS(big?FS(.78):11)},
+    plugins:{notes:{list:M.notes, size:big?FS(.62):10.5}, nowshade:{x:NOWX}, tooltip:{enabled:!big, callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum' ? 'By '+(x%1? upd : hl(Math.round(x))) : h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)+(it.raw.proj?' (pace, hour in progress)':'')}}}},
+    plugins:[{id:'pulse', afterRender: c => placePulse(c, pulseEl, pulseT, mode)}]});
+}
+let rm='cum', cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT'));
+$('rnote').textContent = `Shopify total sales (orders less discounts and returns, plus shipping and tax). Target is the PRM daily target of ${K$(M.target_net)} net × ${M.ratio.toFixed(3)}, this year's total-to-net ratio over the last 28 days.`;
+document.querySelectorAll('[data-rm]').forEach(b => b.onclick = () => { rm=b.dataset.rm; document.querySelectorAll('[data-rm]').forEach(x=>x.classList.toggle('on',x===b)); cRev.destroy(); cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); });
+
+// ---------- spend (lines only)
+let chn='total', smode='cum', cSp;
+const fixedH = SP.fixed_day/24;
+function spArrays(){
+  const lyT = H.ly_google.map((g,i)=>g+(H.ly_meta[i]||0));
+  if(chn==='google') return {t:H.google, ly:H.ly_google, bud:SP.budget_g, shape:H.ly_google, fixed:0};
+  if(chn==='meta') return {t:H.meta, ly:H.ly_meta, bud:SP.budget_m, shape:H.ly_meta, fixed:0};
+  return {t:H.google.map((g,i)=>g+(H.meta[i]||0)+(i<NOW?fixedH:i===NOW?fixedH*M.now_m/60:0)), ly:lyT, bud:SP.budget_day-SP.fixed_day, shape:lyT, fixed:SP.fixed_day};
+}
+function drawSp(){
+  const A = spArrays(), tot = sum(A.shape)||1, budH = A.shape.map(v=>v/tot*A.bud + A.fixed/24);
+  const today = todaySeries(A.t, smode);
+  if(cSp) cSp.destroy();
+  cSp = new Chart($('cSp'), {type:'line', data:{datasets:[
+    {label:'Today', data:today, borderColor:C.y, borderWidth:3.5, pointRadius:smode==='hr'?3:0, pointBackgroundColor:C.y, pointBorderWidth:0, tension:.32, glow:14, fill:'origin',
+      backgroundColor:ctx => { const {ctx:c, chartArea} = ctx.chart; if(!chartArea) return 'rgba(255,222,20,.1)'; const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom); g.addColorStop(0,'rgba(255,222,20,.30)'); g.addColorStop(1,'rgba(255,222,20,0)'); return g; },
+      segment:{borderDash: c => c.p1 && c.p1.raw && c.p1.raw.proj ? [6,6] : undefined}},
+    {label:'Budget', data:series(budH, smode), borderColor:'#fff', borderDash:[7,6], borderWidth:1.8, pointRadius:0, tension:.32},
+    {label:'Last year', data:series(A.ly, smode), borderColor:C.fg3, borderWidth:1.8, pointRadius:0, tension:.32}]},
+    options:{responsive:true, maintainAspectRatio:false, parsing:false, animation:{duration:600}, interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:4, right:12}},
+    scales:{x:xS(), y:yS()}, plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>{const x=it[0].parsed.x; return smode==='cum'?'By '+(x%1?upd:hl(Math.round(x))):h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)+(it.raw.proj?' (pace, hour in progress)':'')}}}},
+    plugins:[{id:'sppulse', afterRender: c => placePulse(c, $('sppulse'), $('sppulseT'), smode)}]});
+  const nm = {total:'Total paid spend', google:'Google Ads', meta:'Meta'}[chn];
+  $('slegend').innerHTML = `<span><i style="background:var(--yellow);height:4px"></i>${nm} today${chn==='total'?' (Shop and Pinterest daily lines pro-rated)':''}</span><span><i class="dash"></i>Budget: BFCM working plan, spread over last year's hours</span><span><i style="background:var(--fg3)"></i>Same day last year${chn==='total'?' (Google + Meta)':''}</span>`;
+}
+document.querySelectorAll('[data-ch]').forEach(b => b.onclick = () => { chn=b.dataset.ch; document.querySelectorAll('[data-ch]').forEach(x=>x.classList.toggle('on',x===b)); drawSp(); });
+document.querySelectorAll('[data-sm]').forEach(b => b.onclick = () => { smode=b.dataset.sm; document.querySelectorAll('[data-sm]').forEach(x=>x.classList.toggle('on',x===b)); drawSp(); });
+drawSp();
+$('spnote').textContent = `Google from the JD Ads hourly sheet (last write ${SP.google_updated} PT, so its latest hour can lag), Meta from Ads Manager. Budget from the BFCM spend plan, Daily Plan tab.`;
+$('sp-v').textContent = D$(SP.so_far);
+const sMax = Math.max(SP.budget_day, SP.forecast)*1.05;
+$('sp-fill').style.width = Math.min(100, SP.so_far/sMax*100)+'%'; $('sp-fc').style.left = Math.min(100, SP.forecast/sMax*100)+'%';
+const chRow = (n, v, b) => `<div class="r"><span>${n}</span><div class="t"><i style="width:${Math.min(100, v/(b||1)*100)}%"></i></div><span><b style="color:var(--fg)">${K$(v)}</b> / ${K$(b)}</span></div>`;
+$('chan').innerHTML = chRow('Google', SP.g_so_far, SP.budget_g) + chRow('Meta', SP.m_so_far, SP.budget_m) + chRow('Shop + Pin', SP.fixed_now, SP.fixed_day) +
+  `<div style="font-size:12px;color:var(--fg2);margin-top:4px">${pct(SP.so_far/SP.budget_day,0)} of the ${D$(SP.budget_day)} working plan. Forecast finish <b style="color:var(--fg)">${D$(SP.forecast)}</b>.</div>`;
+$('mer-v').innerHTML = `<span class="${MER.live>=16?'up':'warn'}">${MER.live.toFixed(1)}x</span>`;
+$('mer-n').innerHTML = `Total sales ${K$(MER.rev_so_far)} ÷ spend ${K$(SP.so_far)}. Floor <b>16x</b> · forecast finish <b>${MER.forecast.toFixed(1)}x</b> · last year at this point <b>${MER.ly.toFixed(1)}x</b> (Google + Meta only).`;
+$('mer-c').innerHTML = MER.live>=16 ? '<span class="chip good">Above the 16x floor</span>' : MER.live>=12 ? '<span class="chip mid">Below the 16x floor</span>' : '<span class="chip bad">Well below the 16x floor</span>';
+
+// ---------- funnel: Shopify-style steps (share of sessions), today vs same hours last year
+const ST = [['sessions','Sessions','👀'],['atc','Added to cart','🛒'],['rc','Reached checkout','💳'],['cc','Completed checkout','✅']];
+const fAct = ST.map(s=>K[s[0]][0]), fLy = ST.map(s=>K[s[0]][1]);
+const fSh = fAct.map(v=>v/fAct[0]), fShL = fLy.map(v=>v/fLy[0]);
+// bar heights: sessions is a broken full bar; later steps on a square-root scale against add to cart so all stay readable
+const fH = (sh) => 58*Math.sqrt(sh/Math.max(fSh[1],fShL[1]));
+function funnelViz(i, small){
+  const h = i===0 ? 100 : fH(fSh[i]), hl_ = i===0 ? null : fH(fShL[i]);
+  const nh = i<3 ? fH(fSh[i+1]) : null;
+  let v = `<div class="b" style="height:${h}%"></div>`;
+  if(i===0) v += '<div class="brk"></div>';
+  if(hl_!=null && !small) v += `<div class="g" style="height:${hl_}%"><span>LY ${pct(fShL[i],2)}</span></div>`;
+  if(hl_!=null && small) v += `<div class="g" style="height:${hl_}%"></div>`;
+  if(nh!=null) v += `<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="cg${i}${small?'s':''}" x1="0" x2="1"><stop offset="0" stop-color="#FFDE14" stop-opacity=".55"/><stop offset="1" stop-color="#FFDE14" stop-opacity=".18"/></linearGradient></defs><polygon points="0,${100-h} 100,${100-nh} 100,100 0,100" fill="url(#cg${i}${small?'s':''})"/></svg>`;
+  return `<div class="fviz">${v}</div>`;
+}
+(function(){
+  $('fl').innerHTML = `<div class="fhead"><div><div class="lbl">Conversion rate breakdown · day so far</div><div class="v dsp num">${pct(cvr[0],2)}</div></div><div style="font-size:13px;color:var(--fg2)">${pts(cvr[0],cvr[1])} · last year ${pct(cvr[1],2)} · plan for today ${pct(M.funnel.day.cc/M.funnel.day.sessions,2)}</div></div>
+  <div class="fsteps">${ST.map((s,i) => { const step = i ? fAct[i]/fAct[i-1] : null, stepL = i ? fLy[i]/fLy[i-1] : null;
+    return `<div class="fst"><div class="top"><span class="emo" aria-hidden="true">${s[2]}</span><div class="nm">${s[1]}</div></div>
+      <div class="pc dsp num">${i?pct(fSh[i],2):'100%'}</div>
+      <div class="ct"><b class="num">${Math.round(fAct[i]).toLocaleString('en-CA')}</b> sessions · ${arrow(dl(fAct[i],fLy[i]))}</div>
+      ${i?`<span class="step">${pct(step,1)} of the step before · ${pts(step,stepL,'vs LY')}</span>`:`<span class="step">${Math.round(fLy[0]).toLocaleString('en-CA')} last year</span>`}
+      ${funnelViz(i,false)}</div>`; }).join('')}</div>`;
+  $('funnote').textContent = `Day so far, to ${upd}, laid out like Shopify's conversion breakdown: each stage as a share of all sessions. The dashed outline is the same hours last year; the pill under each stage is how many from the step before carried on.`;
+})();
+
+// ---------- products
+const stock = p => p.stock==='out' ? '<span class="flag out">Out of stock</span>' : p.stock==='low' ? `<span class="flag low">Low stock · ${p.inv}</span>` : '';
+const url = p => 'https://www.jdsports.ca/products/'+encodeURIComponent(p.h||'');
+const vsLy = p => p.ly ? `<b class="${p.gross>=p.ly?'up':'down'}">${p.gross>=p.ly?'+':''}${pct(p.gross/p.ly-1,0)}</b><span>vs LY ${K$(p.ly)}</span>` : `<b class="yel">New</b><span>no sales LY</span>`;
+$('top').innerHTML = P.top.map((p,i) => `<a class="trow" href="${url(p)}" target="_blank" rel="noopener"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> · ${p.units} units</span>${stock(p)}</div></div><div class="g">${vsLy(p)}</div></a>`).join('');
+$('trend').innerHTML = P.trending.length ? P.trending.map((p,i)=>`<a class="trow" href="${url(p)}" target="_blank" rel="noopener"><span class="rk">${i+1}</span>${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><div class="nm">${esc(p.t)}</div><div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> today · 7-day avg ${p.avg7?K$(p.avg7):'$0'}</span>${stock(p)}</div></div><div class="g">${p.g==null?'<b class="yel">New</b><span>little or no sales in the last 7 days</span>':`<b class="up">+${(p.g*100).toFixed(0)}%</b><span>vs 7-day avg</span>`}</div></a>`).join('') : '<div class="card" style="color:var(--fg3)">Nothing meets the minimum rules yet today.</div>';
+$('trnote').textContent = `Sales today so far vs each product's average for the previous 7 days to the same time of day (${upd}). Minimum rules: ${P.rules.min_units}+ units and $${P.rules.min_sales}+ today, $${P.rules.min_avg7}+ 7-day average. If fewer than 10 qualify, the rest are the biggest sellers with little or nothing in the last 7 days.`;
+
+// ---------- order fulfilment (Open Order Snapshot)
+const sn = M.snapshot, R_ = n => sn && sn.regions.find(r=>r.name===n);
+const ct = R_('Company Total'), wh = R_('Warehouse Total'), stT = R_('Store Total');
+if(ct){
+  const n0 = v => Math.round(v).toLocaleString('en-CA');
+  $('ful').innerHTML = [
+    ['Open orders and value', `${n0(ct.open)}<small>orders · ${K$(ct.value)}</small>`, `Open order value ${D$(ct.value)}. Warehouse ${n0(wh.open)} (${K$(wh.value)}), stores ${n0(stT.open)} (${K$(stT.value)}).`],
+    ['Shipped today', n0(ct.shipped_today), `On time today <b>${pct(ct.ot_today,0)}</b> · month to date ${pct(ct.ot_mtd,0)} (${n0(ct.shipped_mtd)} shipped).`],
+    ['Declines today', n0(ct.decl_today), `Decline rate month to date <b>${pct(ct.decl_rate,1)}</b> (${n0(ct.decl_mtd)}). Stores ${pct(stT.decl_rate,1)}, warehouse ${pct(wh.decl_rate,1)}.`],
+    ['Days to complete', (+ct.days_complete).toFixed(1), `Average days from order to shipped. Stores ${(+stT.days_complete).toFixed(1)}, warehouse ${(+wh.days_complete).toFixed(1)}.`],
+  ].map(o=>`<div class="card"><div class="lbl">${o[0]}</div><div class="v dsp num">${o[1]}</div><div class="t">${o[2]}</div></div>`).join('');
+  const ages = [['Under 24 hrs','lt24','#43D5B0'],['1 to 2 days','d1_2','#FFDE14'],['2 to 3 days','d2_3','#F2A93B'],['Over 3 days','gt3','#FF6B4A'],['On hold','hold','#8A8B8C']];
+  const tot = ages.reduce((a,x)=>a+(+ct[x[1]]||0),0)||1;
+  $('age').innerHTML = `<div class="lbl">Open orders by age · ${n0(ct.open)} orders worth ${D$(ct.value)}</div><div class="agebar">${ages.map(a=>`<div style="flex:${(+ct[a[1]]||0)/tot};background:${a[2]}">${(+ct[a[1]]||0)/tot>.06?pct(ct[a[1]]/tot,0):''}</div>`).join('')}</div>
+    <div class="agekey">${ages.map(a=>`<div><i style="background:${a[2]}"></i>${a[0]}<b class="num">${n0(ct[a[1]])}</b></div>`).join('')}</div>`;
+  const rows = sn.regions.filter(r=>!/Company/.test(r.name));
+  $('ftab').innerHTML = `<thead><tr><th>Region</th><th>Open</th><th>Value</th><th>Over 3 days</th><th>On hold</th><th>Shipped today</th><th>On time today</th><th>Declines today</th><th>Decline rate MTD</th><th>Days to complete</th></tr></thead><tbody>` +
+    rows.concat([ct]).map(r=>`<tr class="${/Total/.test(r.name)?'tot':''}"><td>${esc(r.name)}</td><td>${n0(r.open)}</td><td>${D$(r.value)}</td><td class="${r.gt3>20?'warn':''}">${n0(r.gt3)}</td><td>${n0(r.hold)}</td><td>${n0(r.shipped_today)}</td><td>${pct(r.ot_today,0)}</td><td>${n0(r.decl_today)}</td><td>${pct(r.decl_rate,1)}</td><td>${(+r.days_complete).toFixed(1)}</td></tr>`).join('') + '</tbody>';
+  $('opsnote').textContent = `From the Open Order Snapshot email at ${sn.as_of.slice(11)} PT. Expected JESTA for today (proxy until the hourly MPRD report arrives): ${K$(M.jesta.expected)}.`;
+} else { $('ful').innerHTML = '<div class="card" style="color:var(--fg3)">No Open Order Snapshot yet today.</div>'; }
+
+// ---------- KPI drill-down
+let drK=null, drM='hr', cDr;
+const DR = {
+  total:{t:'Total revenue', a:H.total, l:H.ly_total, tg:H.target, f:D$, cum:true},
+  orders:{t:'Orders', a:H.orders, l:H.ly_orders, f:v=>Math.round(v).toLocaleString('en-CA'), cum:true},
+  aov:{t:'AOV', a:H.total.map((v,i)=>H.orders[i]?(H.gross[i]+(H.disc[i]||0))/H.orders[i]:null), l:H.ly_total.map((v,i)=>H.ly_orders[i]?v/H.ly_orders[i]:null), f:v=>'$'+Math.round(v), cum:false},
+  cvr:{t:'Conversion', a:H.cc.map((v,i)=>H.sessions[i]?v/H.sessions[i]:null), l:H.ly_cc.map((v,i)=>H.ly_sessions[i]?v/H.ly_sessions[i]:null), f:v=>pct(v,2), cum:false},
+  sessions:{t:'Sessions', a:H.sessions, l:H.ly_sessions, f:v=>Math.round(v).toLocaleString('en-CA'), cum:true},
+};
+function drawDrill(){
+  const d = DR[drK]; if(!d) return; const mode = d.cum ? drM : 'hr';
+  $('dr-t').textContent = d.t + (mode==='cum'?' · running total':' · by hour');
+  $('dr-n').textContent = `Today vs ${lyTxt}${d.tg?' and the hourly target':''}. ${d.cum?'':'Each point is that hour on its own.'}`;
+  $('dr-seg').querySelectorAll('[data-dm]').forEach(b=>{ b.hidden = !d.cum; b.classList.toggle('on', b.dataset.dm===mode); });
+  $('dr-tl').hidden = !d.tg;
+  const mk = (arr, upto) => mode==='cum' ? series(arr.map(v=>v||0),'cum',upto) : arr.map((v,i)=>({x:i+.5,y:v})).filter((p,i)=>(upto==null||i<upto) && p.y!=null);
+  const ds = [{label:'Today', data:mk(d.a, DONE), borderColor:C.y, borderWidth:3.2, pointRadius:mode==='hr'?3:0, pointBackgroundColor:C.y, tension:.32, glow:14, fill:mode==='cum'?'origin':false, backgroundColor:'rgba(255,222,20,.08)'},
+    {label:'Last year', data:mk(d.l), borderColor:C.fg3, borderWidth:2, pointRadius:0, tension:.32}];
+  if(d.tg) ds.push({label:'Target', data:mk(d.tg), borderColor:'#fff', borderDash:[7,6], borderWidth:1.8, pointRadius:0, tension:.32});
+  if(cDr) cDr.destroy();
+  cDr = new Chart($('cDr'), {type:'line', data:{datasets:ds}, options:{responsive:true, maintainAspectRatio:false, parsing:false, interaction:{mode:'nearest', axis:'x', intersect:false},
+    scales:{x:xS(), y:{grid, border:{display:false}, beginAtZero:d.cum, ticks:{callback:v=>d.f(v), padding:10, maxTicksLimit:7}}},
+    plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum'?'By '+hl(Math.round(x)):h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+d.f(it.parsed.y)}}}}});
+}
+document.querySelectorAll('.kpi').forEach(el => el.onclick = () => { const k = el.dataset.k; if(!DR[k]) return;
+  if(drK===k){ drK=null; $('drill').hidden=true; } else { drK=k; $('drill').hidden=false; drawDrill(); $('drill').scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  document.querySelectorAll('.kpi').forEach(x=>x.classList.toggle('on', x.dataset.k===drK)); });
+document.querySelectorAll('[data-dm]').forEach(b => b.onclick = () => { drM=b.dataset.dm; drawDrill(); });
+const closeDrill = () => { drK=null; $('drill').hidden=true; document.querySelectorAll('.kpi').forEach(x=>x.classList.remove('on')); };
+$('dr-x').onclick = closeDrill;
+document.addEventListener('keydown', e => { if(e.key==='Escape' && drK) closeDrill(); });
+document.addEventListener('click', e => { if(drK && !e.target.closest('#drill') && !e.target.closest('.kpi')) closeDrill(); });
+
+$('foot').innerHTML = `<b>Sources.</b> Shopify Analytics (ShopifyQL), pulled ${M.pulled} PT, store time zone America/Vancouver. Google Ads from the "JD Ads - Intraday &amp; Alerts" sheet. Meta from the JD_CANADA ad account. Daily targets and funnel plan from the Predictive Revenue Model. Budget from the BFCM spend plan. Open orders from the Open Order Snapshot email. Email send times from Klaviyo; ticker channel traffic from UTM medium.<br><b>Definitions.</b> Total revenue = Shopify total sales. AOV = (gross sales less discounts) ÷ orders, Shopify's Average order value basis. Conversion = sessions that completed checkout ÷ sessions. MER = Shopify total sales ÷ paid spend. Predicted end of day = total sales through the last full hour ÷ last year's share of the day done by that hour. Alerts mark hours where total sales fell below 55% of the hour target while orders held up (returns posting), or ran above 160% of it. Sessions include some automated traffic (noted since June 2026).`;
+
+// ---------- screen view
+let sChart, srm='cum', tickT, rot;
+function clock(){ $('s-clk').innerHTML = new Date().toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit',timeZone:'America/Vancouver'}).replace(/\s?([ap])\.?\s?m\.?/i,(m,a)=>' '+a.toUpperCase()+'M') + `<span>Data to ${upd} PT</span>`; }
+function screen(){
+  $('s-date').innerHTML = `${dateTxt}<span>${esc(M.phase||'')} · vs ${lyTxt}</span>`; clock();
+  const strip = n => { n.removeAttribute('id'); n.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id')); n.removeAttribute('role'); n.removeAttribute('tabindex'); return n; };
+  $('s-pace').innerHTML = ''; document.querySelectorAll('#live .grid3 > .card').forEach(c => $('s-pace').appendChild(strip(c.cloneNode(true))));
+  $('s-kpis').innerHTML = ''; document.querySelectorAll('#kpis > .kpi').forEach(c => { const n = strip(c.cloneNode(true)); n.classList.remove('on'); delete n.dataset.k; $('s-kpis').appendChild(n); });
+  drawScreenChart();
+  const items = M.ticker.map(t=>`<span class="it ${t.tone}"><b>${esc(t.k)}</b>${t.img?`<img src="${t.img}" alt="">`:''}${esc(t.txt)}</span>`).join('');
+  $('s-mq').innerHTML = items + items;   // doubled so the loop is seamless
+  $('s-mq').style.setProperty('--mqd', Math.max(40, M.ticker.reduce((a,t)=>a+t.txt.length,0)*.28)+'s');
+  clearInterval(rot); rot = setInterval(() => { srm = srm==='cum'?'hr':'cum'; drawScreenChart(); }, 45000);
+}
+function drawScreenChart(){ if(sChart) sChart.destroy(); sChart = revChart($('cScr'), srm, true, $('spulse'), $('spulseT'));
+  document.querySelectorAll('[data-srm]').forEach(x=>x.classList.toggle('on', x.dataset.srm===srm)); $('s-ct').textContent = srm==='cum' ? 'Revenue pacing · running total' : 'Revenue per hour'; }
+document.querySelectorAll('[data-srm]').forEach(b => b.onclick = () => { srm=b.dataset.srm; drawScreenChart(); });
+
+// tighten the display font's wide comma
+function commas(){ document.querySelectorAll('.dsp').forEach(el => { if(el.closest('svg')) return; el.innerHTML = el.innerHTML.replace(/(\d),(\d)/g,'$1<span class="cm">,</span>$2'); }); }
+// ---------- views
+function view(v){ const s = v==='screen'; $('live').hidden = s; $('screen').hidden = !s; document.body.classList.toggle('scr-on', s);
+  $('t-live').classList.toggle('on',!s); $('t-screen').classList.toggle('on',s);
+  if(s){ screen(); commas(); } else { clearInterval(tickT); clearInterval(rot); } }
+document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { location.hash = b.dataset.view; });
+window.addEventListener('hashchange', () => view(location.hash.slice(1)));
+view(location.hash.slice(1)||'live');
+commas();
+setInterval(() => { if(!$('screen').hidden) clock(); }, 20000);
+if(/github\.io$/.test(location.hostname)) setInterval(() => { if(!document.hidden) location.reload(); }, 10*60*1000);
+})();
+</script>

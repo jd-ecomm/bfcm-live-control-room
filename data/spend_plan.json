@@ -1,0 +1,312 @@
+{
+"2026-11-01": {
+"type": "Normal",
+"paid_target": 120124.0,
+"base": 10617.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 2772.0,
+"google": 6744.0,
+"working": 10617.0
+},
+"2026-11-02": {
+"type": "Normal",
+"paid_target": 130922.0,
+"base": 11571.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 3059.0,
+"google": 7412.0,
+"working": 11571.0
+},
+"2026-11-03": {
+"type": "Normal",
+"paid_target": 100553.0,
+"base": 8887.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 3587.0,
+"google": 8644.0,
+"working": 13330.0
+},
+"2026-11-04": {
+"type": "Normal",
+"paid_target": 100553.0,
+"base": 8887.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 3587.0,
+"google": 8644.0,
+"working": 13330.0
+},
+"2026-11-05": {
+"type": "Normal",
+"paid_target": 121474.0,
+"base": 10736.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 4419.0,
+"google": 10585.0,
+"working": 16104.0
+},
+"2026-11-06": {
+"type": "Normal",
+"paid_target": 103927.0,
+"base": 9185.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 3721.0,
+"google": 8957.0,
+"working": 13778.0
+},
+"2026-11-07": {
+"type": "Normal",
+"paid_target": 143069.0,
+"base": 12645.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 5278.0,
+"google": 12589.0,
+"working": 18967.0
+},
+"2026-11-08": {
+"type": "Normal",
+"paid_target": 132946.0,
+"base": 11750.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 4875.0,
+"google": 11650.0,
+"working": 17625.0
+},
+"2026-11-09": {
+"type": "Normal",
+"paid_target": 156566.0,
+"base": 13837.0,
+"shop": 950.0,
+"pinterest": 150.0,
+"meta": 5814.0,
+"google": 13842.0,
+"working": 20756.0
+},
+"2026-11-10": {
+"type": "Normal",
+"paid_target": 134971.0,
+"base": 11929.0,
+"shop": 2500,
+"pinterest": 150.0,
+"meta": 4955.0,
+"google": 10288.0,
+"working": 17893.0
+},
+"2026-11-11": {
+"type": "Normal",
+"paid_target": 150492.0,
+"base": 13301.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 5573.0,
+"google": 11728.0,
+"working": 19951.0
+},
+"2026-11-12": {
+"type": "Normal",
+"paid_target": 115400.0,
+"base": 10199.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 4177.0,
+"google": 8472.0,
+"working": 15299.0
+},
+"2026-11-13": {
+"type": "Normal",
+"paid_target": 122148.0,
+"base": 10796.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 4446.0,
+"google": 9098.0,
+"working": 16193.0
+},
+"2026-11-14": {
+"type": "Spike",
+"paid_target": 234849.0,
+"base": 20756.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 5777.0,
+"google": 12329.0,
+"working": 20756.0
+},
+"2026-11-15": {
+"type": "Spike",
+"paid_target": 276690.0,
+"base": 24454.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 6886.0,
+"google": 14918.0,
+"working": 24454.0
+},
+"2026-11-16": {
+"type": "Spike",
+"paid_target": 217978.0,
+"base": 19265.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 5330.0,
+"google": 11286.0,
+"working": 19265.0
+},
+"2026-11-17": {
+"type": "Normal",
+"paid_target": 143744.0,
+"base": 12704.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 3399.0,
+"google": 6655.0,
+"working": 12704.0
+},
+"2026-11-18": {
+"type": "Normal",
+"paid_target": 139020.0,
+"base": 12287.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 3274.0,
+"google": 6363.0,
+"working": 12287.0
+},
+"2026-11-19": {
+"type": "Spike",
+"paid_target": 204481.0,
+"base": 18072.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 4972.0,
+"google": 10451.0,
+"working": 18072.0
+},
+"2026-11-20": {
+"type": "Spike",
+"paid_target": 342826.0,
+"base": 30299.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 8640.0,
+"google": 19009.0,
+"working": 30299.0
+},
+"2026-11-21": {
+"type": "Spike",
+"paid_target": 290862.0,
+"base": 25707.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 7262.0,
+"google": 15795.0,
+"working": 25707.0
+},
+"2026-11-22": {
+"type": "BF week",
+"paid_target": 230125.0,
+"base": 20339.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 5637.0,
+"google": 12052.0,
+"working": 20339.0
+},
+"2026-11-23": {
+"type": "BF week",
+"paid_target": 446753.0,
+"base": 39484.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 11380.0,
+"google": 25454.0,
+"working": 39484.0
+},
+"2026-11-24": {
+"type": "BF week",
+"paid_target": 336752.0,
+"base": 29762.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 8464.0,
+"google": 18649.0,
+"working": 29762.0
+},
+"2026-11-25": {
+"type": "BF week",
+"paid_target": 338776.0,
+"base": 29941.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 8517.0,
+"google": 18774.0,
+"working": 29941.0
+},
+"2026-11-26": {
+"type": "BF week",
+"paid_target": 456876.0,
+"base": 40379.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 11649.0,
+"google": 26080.0,
+"working": 40379.0
+},
+"2026-11-27": {
+"type": "Black Friday",
+"paid_target": 995409.0,
+"base": 87975.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 25853.0,
+"google": 59473.0,
+"working": 87975.0
+},
+"2026-11-28": {
+"type": "BF week",
+"paid_target": 460250.0,
+"base": 40677.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 11738.0,
+"google": 26289.0,
+"working": 40677.0
+},
+"2026-11-29": {
+"type": "Cyber",
+"paid_target": 199082.0,
+"base": 17595.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 4799.0,
+"google": 10147.0,
+"working": 17595.0
+},
+"2026-11-30": {
+"type": "Cyber",
+"paid_target": 298623.0,
+"base": 26393.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 7438.0,
+"google": 16305.0,
+"working": 26393.0
+},
+"2026-12-01": {
+"type": "Cyber",
+"paid_target": 348393.0,
+"base": 30791.0,
+"shop": 2500.0,
+"pinterest": 150.0,
+"meta": 8757.0,
+"google": 19384.0,
+"working": 30791.0
+}
+}
