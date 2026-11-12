@@ -50,3 +50,4 @@ Then `python3 tools/compute.py [YYYY-MM-DD]` and `python3 tools/build.py`. Fonts
 - Ticker (Dashboard view): click an item -> Live view with the product, hour, funnel split or spend detail open. Ticker items carry `go`.
 - Product rows -> product drill-down (landing-page funnel); fulfilment regions -> stores; KPI cards -> hourly view; chart notes collapse to short pills.
 - The page reloads itself every 10 minutes on GitHub Pages, except within 5 minutes of someone clicking or scrolling, so open drill-downs stay put.
+- Auto-refresh: tools/build.py writes data/version.json (a stamp of the built page). Every open page reads it once a minute with caching off and reloads itself when it changes, keeping the same view. Always commit data/version.json with index.html.

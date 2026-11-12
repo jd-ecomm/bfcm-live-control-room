@@ -962,9 +962,29 @@ window.addEventListener('hashchange', () => view(location.hash.slice(1)));
 view(location.hash.slice(1)||'live');
 commas();
 setInterval(() => { if(!$('screen').hidden) clock(); }, 20000);
-// self-refresh on GitHub Pages every 10 minutes, but not while someone has used the page in the last 5 minutes (drill-downs stay open)
-let lastUse = 0; ['click','keydown','wheel','touchstart'].forEach(ev => addEventListener(ev, () => { lastUse = Date.now(); }, {passive:true}));
-if(/github\.io$/.test(location.hostname)) setInterval(() => { if(!document.hidden && Date.now() - lastUse > 5*60*1000) location.reload(); }, 10*60*1000);
+// Self-refresh (Ryan, 12 Nov 2026: "I still have to refresh"). Every minute the page asks the server for a tiny version stamp,
+// bypassing every cache. When the stamp differs from the one this page was built with, it reloads itself with a fresh address so the
+// browser cannot serve the old copy. If someone is mid-click it waits for 20 quiet seconds first. Also checks the moment the tab is shown again.
+const BUILD_VER = '7a7cd71d2960';
+let lastUse = 0, pendingVer = null, lastOk = Date.now();
+['click','keydown','wheel','touchstart','mousemove'].forEach(ev => addEventListener(ev, () => { lastUse = Date.now(); }, {passive:true}));
+function hardReload(){ const u = new URL(location.href); u.searchParams.set('t', Date.now().toString(36)); location.replace(u.toString()); }
+async function checkVersion(){
+  if(pendingVer){ if(document.hidden || Date.now() - lastUse > 20000) hardReload(); return; }
+  try{
+    const r = await fetch('data/version.json?t=' + Date.now(), {cache:'no-store'}); if(!r.ok) return;
+    const j = await r.json(); lastOk = Date.now();
+    if(j.v && j.v !== BUILD_VER){ pendingVer = j.v; const f = $('fresh'); if(f) f.textContent = 'New data arriving…';
+      if(document.hidden || Date.now() - lastUse > 20000) hardReload(); }
+  }catch(e){ /* offline: try again next tick */ }
+}
+if(/github\.io$/.test(location.hostname) && BUILD_VER.indexOf('BUILD_VER') < 0){
+  setInterval(checkVersion, 60000); setInterval(() => { if(pendingVer) checkVersion(); }, 5000);
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) checkVersion(); });
+  addEventListener('focus', checkVersion); addEventListener('online', checkVersion);
+  // safety net: if the stamp could not be read for 30 minutes, reload anyway
+  setInterval(() => { if(Date.now() - lastOk > 30*60*1000 && Date.now() - lastUse > 20000) hardReload(); }, 5*60*1000);
+}
 })();
 </script>
 

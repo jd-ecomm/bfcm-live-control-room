@@ -12,4 +12,10 @@ html = t.replace('/*__MODEL__*/', m.replace('</', '<\\/'))
 if not html.lstrip().lower().startswith('<!doctype'):
     html = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body>\n' + html + '\n</body></html>'
 (R / 'out/index.html').write_text(html)
+# Tiny version stamp the open page polls (data/version.json): changes whenever the data OR the page design changes,
+# so every open browser reloads itself within about a minute of a publish (Ryan, 12 Nov 2026).
+import hashlib
+ver = hashlib.sha1(html.replace('__BUILD_VER__', '').encode()).hexdigest()[:12]
+(R / 'out/index.html').write_text(html.replace('__BUILD_VER__', ver))
+(R / 'data/version.json').write_text(json.dumps({'v': ver, 'pulled': json.loads(m).get('pulled')}))
 print('built out/index.html', len(t) + len(m))
