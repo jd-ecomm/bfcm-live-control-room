@@ -30,3 +30,9 @@ Files in the project: `claude/bfcm-control-room-template.html` (page template, m
 7. **Markers** `markers.json`: Klaviyo campaign send times today (Attentive has no sends since June 2026).
 
 Then `python3 tools/compute.py [YYYY-MM-DD]` and `python3 tools/build.py`. Fonts: publish fonts/ForeverForwardSans-Headline.woff2 next to index.html (copy from the Brand Kit Test artifact).
+
+## Hourly run tools (added 12 Nov 2026, first scheduled run)
+- `tools/pull_today.js`: paste into the Shopify analytics page (built-in browser), then `await __pull({ly:'<LY day>', p7:<first run of day>, lyFill:<LY day missing from caches>, known:[ids in shopify_raw2 imgs]})`. CSRF comes from the page's `"csrfToken"` script JSON (the meta tag no longer exists). With p7, it returns raw `p7raw`; reduce it in the page to `__out.p7` before export (see the 12 Nov run: sum gross to the current local time, /7, plus full-day /7), then `__slice(null,i)` padded with `' '.repeat(60000)`.
+- `tools/merge_pull.py pull.json`: replaces today keys in shopify_raw2.json, appends LY-day lyNR2/lyPH/utmL rows not already cached, adds new product meta to P and thumbnails to imgs, writes p7.json.
+- `tools/snapshot.py file.xlsx "YYYY-MM-DD HH:MM"`: Open Order Snapshot attachment (Gmail RAW) -> data/snapshot.json (Detail regions, top 6 Master sites by over-3-day orders as watch).
+- Note: the static caches held lyNR2/lyPH/utmL for 2025-11-11 only, so each new day's first run pulls that LY day (lyFill:true).
