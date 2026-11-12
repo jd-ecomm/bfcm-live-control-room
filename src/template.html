@@ -60,6 +60,7 @@ section{padding-block:22px 2px}
 
 /* pace strip */
 .pc .big{font-size:68px;margin-top:10px}
+.pc .track{margin-top:30px}
 .pc .meta{display:flex;justify-content:space-between;gap:10px;margin-top:12px;font-size:12px;color:var(--fg3)}
 .pc .meta b{color:var(--fg);font-weight:700}
 .pc .say{margin-top:10px;font-size:12.5px;color:var(--fg2)}
@@ -104,8 +105,8 @@ section{padding-block:22px 2px}
 .chan .r span:last-child{text-align:right;color:var(--fg2)}
 
 /* funnel: Shopify-style steps, each stage as a share of sessions */
-.fhead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:14px}
-.fhead .v{font-size:56px}
+.fhead{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.fhead .v{font-size:56px;margin-top:12px;display:block}
 .fsteps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--line)}
 .fst{position:relative;padding:16px 0 0 18px;min-width:0;display:flex;flex-direction:column}
 .fst+.fst{border-left:1px solid var(--line)}
@@ -199,7 +200,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
 .tv .pc .big{font-size:calc(var(--u)*3.1);margin-top:calc(var(--u)*.45)}
 .tv .pc .meta{font-size:calc(var(--u)*.68);margin-top:calc(var(--u)*.5)}
 .tv .pc .say{font-size:calc(var(--u)*.7);margin-top:calc(var(--u)*.4);line-height:1.4}
-.tv .track{height:calc(var(--u)*.55);margin-top:calc(var(--u)*.8)}
+.tv .track{height:calc(var(--u)*.55);margin-top:calc(var(--u)*1.4)}
 .tv .track .mk{top:calc(var(--u)*-.3);bottom:calc(var(--u)*-.3)}
 .tv .track .mk span{font-size:calc(var(--u)*.48);top:calc(var(--u)*-.9)}
 .tv .mini{height:calc(var(--u)*1.9);margin-top:calc(var(--u)*.4)}
@@ -547,9 +548,15 @@ $('sp-fill').style.width = Math.min(100, SP.so_far/sMax*100)+'%'; $('sp-fc').sty
 const chRow = (n, v, b) => `<div class="r"><span>${n}</span><div class="t"><i style="width:${Math.min(100, v/(b||1)*100)}%"></i></div><span><b style="color:var(--fg)">${K$(v)}</b> / ${K$(b)}</span></div>`;
 $('chan').innerHTML = chRow('Google', SP.g_so_far, SP.budget_g) + chRow('Meta', SP.m_so_far, SP.budget_m) + chRow('Shop + Pin', SP.fixed_now, SP.fixed_day) +
   `<div style="font-size:12px;color:var(--fg2);margin-top:4px">${pct(SP.so_far/SP.budget_day,0)} of the ${D$(SP.budget_day)} working plan. Forecast finish <b style="color:var(--fg)">${D$(SP.forecast)}</b>.</div>`;
-$('mer-v').innerHTML = `<span class="${MER.live>=16?'up':'warn'}">${MER.live.toFixed(1)}x</span>`;
-$('mer-n').innerHTML = `Total sales ${K$(MER.rev_so_far)} ÷ spend ${K$(SP.so_far)}. Floor <b>16x</b> · forecast finish <b>${MER.forecast.toFixed(1)}x</b> · last year at this point <b>${MER.ly.toFixed(1)}x</b> (Google + Meta only).`;
-$('mer-c').innerHTML = MER.live>=16 ? '<span class="chip good">Above the 16x floor</span>' : MER.live>=12 ? '<span class="chip mid">Below the 16x floor</span>' : '<span class="chip bad">Well below the 16x floor</span>';
+// MER vs last year (Ryan, 12 Nov 2026: compare with last year's MER, not the 16x floor).
+// Last year only has Google + Meta spend, so the comparison uses today's Google + Meta MER (like for like).
+const merGM = K.spend[0] ? K.total[0]/K.spend[0] : null, merLY = MER.ly;
+const merUp = merGM!=null && merLY!=null && merGM >= merLY, merD = (merGM!=null && merLY) ? merGM/merLY-1 : null;
+$('mer-v').innerHTML = `<span class="${merUp?'up':'down'}">${MER.live.toFixed(1)}x</span>`;
+$('mer-n').innerHTML = `Total sales ${K$(MER.rev_so_far)} ÷ spend ${K$(SP.so_far)}. On Google + Meta only: <b>${merGM!=null?merGM.toFixed(1)+'x':'–'}</b> vs <b>${merLY!=null?merLY.toFixed(1)+'x':'–'}</b> last year at this point. Forecast finish <b>${MER.forecast.toFixed(1)}x</b>.`;
+$('mer-c').innerHTML = merD==null ? '' : merD >= .05 ? `<span class="chip good">Ahead of last year · +${(merD*100).toFixed(0)}%</span>` : merD > -.05 ? '<span class="chip mid">In line with last year</span>' : `<span class="chip mid">Behind last year · ${(merD*100).toFixed(0)}%</span>`;
+
+
 
 // ---------- funnel: Shopify-style steps (share of sessions), today vs same hours last year
 const ST = [['sessions','Sessions','👀'],['atc','Added to cart','🛒'],['rc','Reached checkout','💳'],['cc','Completed checkout','✅']];
