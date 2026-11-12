@@ -361,7 +361,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
 
   <section class="wrap">
     <div class="kpis" id="kpis"></div>
-    <div class="card drill" id="drill" hidden><div class="ch-h"><div><h3 class="dsp" id="dr-t"></h3><div class="note" id="dr-n"></div></div><div class="seg" id="dr-seg"><button class="pill sm" data-dm="cum">Running total</button><button class="pill sm on" data-dm="hr">Per hour</button><button class="pill sm closeb" id="dr-x" aria-label="Close the hourly view">✕ Close</button></div></div><div class="cbox"><canvas id="cDr"></canvas></div><div class="legend"><span><i style="background:var(--yellow);height:4px"></i>Today</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span id="dr-tl"><i class="dash"></i>Target</span></div></div>
+    <div class="card drill" id="drill" hidden><div class="ch-h"><div><h3 class="dsp" id="dr-t"></h3><div class="note" id="dr-n"></div></div><div class="seg" id="dr-seg"><button class="pill sm" data-dm="cum">Running total</button><button class="pill sm on" data-dm="hr">Per hour</button><button class="pill sm closeb" id="dr-x" aria-label="Close the hourly view">✕ Close</button></div></div><div class="cbox"><canvas id="cDr"></canvas></div><div class="legend" id="dr-lg"><span><i style="background:var(--yellow);height:4px"></i>Today</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span id="dr-tl"><i class="dash"></i>Target</span></div></div>
     <p class="lbl" style="margin:12px 0 0;font-weight:600;letter-spacing:.06em" id="kpinote"></p>
   </section>
 
@@ -386,7 +386,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
         <div class="card"><div class="lbl">Spend vs daily budget</div><div class="dsp num" style="font-size:46px;margin-top:10px" id="sp-v"></div>
           <div class="track"><div class="fill" id="sp-fill"></div><div class="mk" id="sp-fc"><span>Forecast</span></div></div>
           <div class="chan" id="chan" style="margin-top:16px"></div></div>
-        <div class="card mer"><div class="lbl">Live MER · Shopify total sales ÷ paid spend</div><div class="v dsp num" id="mer-v"></div><div style="font-size:12.5px;color:var(--fg2);margin-top:8px" id="mer-n"></div><div style="margin-top:12px" id="mer-c"></div></div>
+        <div class="card mer"><div class="lbl">MER · Shopify total sales ÷ Google + Meta spend</div><div class="v dsp num" id="mer-v"></div><div style="font-size:12.5px;color:var(--fg2);margin-top:8px" id="mer-n"></div><div style="margin-top:12px" id="mer-c"></div></div>
       </div>
     </div>
     <div class="card xd" id="spdrill" hidden></div>
@@ -510,7 +510,7 @@ const kp = [
   ['Sessions', Math.round(K.sessions[0]).toLocaleString('en-CA'), arrow(dl(K.sessions[0],K.sessions[1])), spark(H.sessions, H.ly_sessions)],
   ['New customers', pct(newSh[0],0), pts(newSh[0],newSh[1]), `<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="6" width="100" height="9" rx="4" fill="#222"/><rect x="0" y="6" width="${newSh[0]*100}" height="9" rx="4" fill="${C.y}"/><rect x="0" y="21" width="100" height="5" rx="2.5" fill="#222"/><rect x="0" y="21" width="${newSh[1]*100}" height="5" rx="2.5" fill="${C.fg3}"/></svg>`],
 ];
-const kKeys = ['orders','aov','cvr','sessions',null];
+const kKeys = ['orders','aov','cvr','sessions','newc'];
 $('kpis').innerHTML = kp.map((k,i) => `<div class="card kpi" ${kKeys[i]?`data-k="${kKeys[i]}" role="button" tabindex="0"`:''}><div class="lbl">${k[0]}</div><div class="v dsp num">${k[1]}</div><div class="d">${k[2]}</div>${k[3]}${kKeys[i]?'<div class="hint">Click for hourly view</div>':''}</div>`).join('');
 $('kpinote').textContent = `Today so far, to ${upd}, against ${lyTxt} to the same time. Grey line in each sparkline is last year. Click a card to open it by hour; click again, press Esc or click anywhere else to close. New customers is their share of total revenue.`;
 
@@ -666,9 +666,11 @@ $('chan').innerHTML = chRow('Google', SP.g_so_far, SP.budget_g, 'google') + chRo
 // Last year only has Google + Meta spend, so the comparison uses today's Google + Meta MER (like for like).
 const merGM = K.spend[0] ? K.total[0]/K.spend[0] : null, merLY = MER.ly;
 const merUp = merGM!=null && merLY!=null && merGM >= merLY, merD = (merGM!=null && merLY) ? merGM/merLY-1 : null;
-$('mer-v').innerHTML = `<span class="${merUp?'up':'down'}">${MER.live.toFixed(1)}x</span>`;
-$('mer-n').innerHTML = `Total sales ${K$(MER.rev_so_far)} ÷ spend ${K$(SP.so_far)}. On Google + Meta only: <b>${merGM!=null?merGM.toFixed(1)+'x':'–'}</b> vs <b>${merLY!=null?merLY.toFixed(1)+'x':'–'}</b> last year at this point. Forecast finish <b>${MER.forecast.toFixed(1)}x</b>.`;
-$('mer-c').innerHTML = merD==null ? '' : merD >= .05 ? `<span class="chip good">Ahead of last year · +${(merD*100).toFixed(0)}%</span>` : merD > -.05 ? '<span class="chip mid">In line with last year</span>' : `<span class="chip mid">Behind last year · ${(merD*100).toFixed(0)}%</span>`;
+// Headline is like for like with last year (Google + Meta only; last year has no Shop / Pinterest lines). Ryan, 12 Nov 2026: one number, one comparison.
+const merFcGM = (SP.fc_g+SP.fc_m) ? M.pred/(SP.fc_g+SP.fc_m) : null;
+$('mer-v').innerHTML = `<span class="${merUp?'up':'down'}">${merGM!=null?merGM.toFixed(1)+'x':'–'}</span>`;
+$('mer-n').innerHTML = `Total sales ${K$(K.total[0])} ÷ Google + Meta spend ${K$(K.spend[0])}. Last year at this point: <b>${merLY!=null?merLY.toFixed(1)+'x':'–'}</b>. Forecast finish <b>${merFcGM!=null?merFcGM.toFixed(1)+'x':'–'}</b>.<br><span style="color:var(--fg3)">Including Shop and Pinterest daily lines (pro-rated), all paid spend ${K$(SP.so_far)}: ${MER.live.toFixed(1)}x now, ${MER.forecast.toFixed(1)}x forecast. No last-year comparison for that one.</span>`;
+$('mer-c').innerHTML = merD==null ? '' : merD >= .05 ? `<span class="chip good">Ahead of last year · +${(merD*100).toFixed(0)}% (${merGM.toFixed(1)}x vs ${merLY.toFixed(1)}x)</span>` : merD > -.05 ? '<span class="chip mid">In line with last year</span>' : `<span class="chip mid">Behind last year · ${(merD*100).toFixed(0)}% (${merGM.toFixed(1)}x vs ${merLY.toFixed(1)}x)</span>`;
 // ---------- spend channel drill-down: campaigns and ROAS by hour (Ryan, 12 Nov 2026)
 let spOpen = null, cSpd;
 const CP = M.camp || {};
@@ -864,9 +866,14 @@ const DR = {
   aov:{t:'AOV', a:H.total.map((v,i)=>H.orders[i]?(H.gross[i]+(H.disc[i]||0))/H.orders[i]:null), l:H.ly_total.map((v,i)=>H.ly_orders[i]?v/H.ly_orders[i]:null), f:v=>'$'+Math.round(v), cum:false},
   cvr:{t:'Conversion', a:H.cc.map((v,i)=>H.sessions[i]?v/H.sessions[i]:null), l:H.ly_cc.map((v,i)=>H.ly_sessions[i]?v/H.ly_sessions[i]:null), f:v=>pct(v,2), cum:false},
   sessions:{t:'Sessions', a:H.sessions, l:H.ly_sessions, f:v=>Math.round(v).toLocaleString('en-CA'), cum:true},
+  // New customers card: new and returning customer revenue as two lines, last year dashed (Ryan, 12 Nov 2026)
+  newc:{t:'New vs returning customer revenue', multi:true, f:D$, cum:true},
 };
+const drLegend = $('dr-lg').innerHTML;
 function drawDrill(){
   const d = DR[drK]; if(!d) return; const mode = d.cum ? drM : 'hr';
+  if(d.multi) return drawNewRet(mode);
+  $('dr-lg').innerHTML = drLegend;
   $('dr-t').textContent = d.t + (mode==='cum'?' · running total':' · by hour');
   $('dr-n').textContent = `Today vs ${lyTxt}${d.tg?' and the hourly target':''}. ${d.cum?'':'Each point is that hour on its own.'}`;
   $('dr-seg').querySelectorAll('[data-dm]').forEach(b=>{ b.hidden = !d.cum; b.classList.toggle('on', b.dataset.dm===mode); });
@@ -880,8 +887,27 @@ function drawDrill(){
     scales:{x:xS(), y:{grid, border:{display:false}, beginAtZero:d.cum, ticks:{callback:v=>d.f(v), padding:10, maxTicksLimit:7}}},
     plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum'?'By '+hl(Math.round(x)):h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+d.f(it.parsed.y)}}}}});
 }
+function drawNewRet(mode){
+  const T = M.nrh.today, L = M.nrh.ly, fr = M.now_m/60;
+  const soFar = a => sum(a, NOW+1), lySoFar = a => sum(a, NOW) + (a[NOW]||0)*fr;   // today to now vs LY to the same minute
+  const nT = soFar(T.New), nL = lySoFar(L.New), rT = soFar(T.Returning), rL = lySoFar(L.Returning);
+  $('dr-t').textContent = d0(mode);
+  function d0(m){ return 'New vs returning customer revenue' + (m==='cum'?' · running total':' · by hour'); }
+  const nw = h => `<span style="white-space:nowrap">${h}</span>`;
+  $('dr-n').innerHTML = `${nw(`<b style="color:var(--yellow)">New ${K$(nT)}</b> ${arrow(dl(nT,nL))} (LY ${K$(nL)})`)} &nbsp;·&nbsp; ${nw(`<b style="color:var(--teal)">Returning ${K$(rT)}</b> ${arrow(dl(rT,rL))} (LY ${K$(rL)})`)}<br>Shopify total sales by new or returning customer, today to ${upd} vs ${lyTxt} to the same time. An hour below zero means returns booked that hour outweighed new sales.`;
+  $('dr-seg').querySelectorAll('[data-dm]').forEach(b=>{ b.hidden = false; b.classList.toggle('on', b.dataset.dm===mode); });
+  $('dr-lg').innerHTML = `<span><i style="background:var(--yellow);height:4px"></i>New customers today</span><span><i style="background:var(--teal);height:4px"></i>Returning customers today</span><span><i style="background:repeating-linear-gradient(90deg,var(--yellow) 0 5px,transparent 5px 8px)"></i>New, same day last year</span><span><i style="background:repeating-linear-gradient(90deg,var(--teal) 0 5px,transparent 5px 8px)"></i>Returning, same day last year</span>`;
+  const mk = (arr, upto) => mode==='cum' ? series(arr.map(v=>v||0),'cum',upto) : arr.map((v,i)=>({x:i+.5,y:v})).filter((p,i)=>upto==null||i<upto);
+  const ln = (label, data, col, dash, w) => ({label, data, borderColor:col, borderWidth:w, borderDash:dash, pointRadius:mode==='hr'&&!dash?3:0, pointBackgroundColor:col, tension:.32});
+  const ds = [ln('New today', mk(T.New, DONE), C.y, undefined, 3.2), ln('Returning today', mk(T.Returning, DONE), C.t, undefined, 3.2),
+    ln('New last year', mk(L.New), C.y, [6,5], 1.8), ln('Returning last year', mk(L.Returning), C.t, [6,5], 1.8)];
+  ds[0].glow = 12;
+  if(cDr) cDr.destroy();
+  cDr = new Chart($('cDr'), {type:'line', data:{datasets:ds}, options:{responsive:true, maintainAspectRatio:false, parsing:false, interaction:{mode:'nearest', axis:'x', intersect:false},
+    scales:{x:xS(), y:yS()}, plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum'?'By '+hl(Math.round(x)):h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)}}}}});
+}
 document.querySelectorAll('.kpi').forEach(el => el.onclick = () => { const k = el.dataset.k; if(!DR[k]) return;
-  if(drK===k){ drK=null; $('drill').hidden=true; } else { drK=k; $('drill').hidden=false; drawDrill(); $('drill').scrollIntoView({behavior:'smooth', block:'nearest'}); }
+  if(drK===k){ drK=null; $('drill').hidden=true; } else { if(k==='newc') drM='cum'; drK=k; $('drill').hidden=false; drawDrill(); $('drill').scrollIntoView({behavior:'smooth', block:'nearest'}); }
   document.querySelectorAll('.kpi').forEach(x=>x.classList.toggle('on', x.dataset.k===drK)); });
 document.querySelectorAll('[data-dm]').forEach(b => b.onclick = () => { drM=b.dataset.dm; drawDrill(); });
 const closeDrill = () => { drK=null; $('drill').hidden=true; document.querySelectorAll('.kpi').forEach(x=>x.classList.remove('on')); };
@@ -889,7 +915,7 @@ $('dr-x').onclick = closeDrill;
 document.addEventListener('keydown', e => { if(e.key==='Escape' && drK) closeDrill(); });
 document.addEventListener('click', e => { if(drK && !e.target.closest('#drill') && !e.target.closest('.kpi')) closeDrill(); });
 
-$('foot').innerHTML = `<b>Sources.</b> Shopify Analytics (ShopifyQL), pulled ${M.pulled} PT, store time zone America/Vancouver. Google Ads from the "JD Ads - Intraday &amp; Alerts" sheet. Meta from the JD_CANADA ad account. Daily targets and funnel plan from the Predictive Revenue Model. Budget from the BFCM spend plan. Open orders from the Open Order Snapshot email. Email send times from Klaviyo; ticker channel traffic from UTM medium.<br><b>Definitions.</b> Total revenue = Shopify total sales. AOV = (gross sales less discounts) ÷ orders, Shopify's Average order value basis. Conversion = sessions that completed checkout ÷ sessions. MER = Shopify total sales ÷ paid spend. Predicted end of day = total sales through the last full hour ÷ last year's share of the day done by that hour. Alerts mark hours where total sales fell below 55% of the hour target while orders held up (returns posting), or ran above 160% of it. Sessions include some automated traffic (noted since June 2026).`;
+$('foot').innerHTML = `<b>Sources.</b> Shopify Analytics (ShopifyQL), pulled ${M.pulled} PT, store time zone America/Vancouver. Google Ads from the "JD Ads - Intraday &amp; Alerts" sheet. Meta from the JD_CANADA ad account. Daily targets and funnel plan from the Predictive Revenue Model. Budget from the BFCM spend plan. Open orders from the Open Order Snapshot email. Email send times from Klaviyo; ticker channel traffic from UTM medium.<br><b>Definitions.</b> Total revenue = Shopify total sales. AOV = (gross sales less discounts) ÷ orders, Shopify's Average order value basis. Conversion = sessions that completed checkout ÷ sessions. MER headline = Shopify total sales ÷ Google + Meta spend, like for like with last year; the all-in figure adds the Shop and Pinterest daily lines pro-rated. Predicted end of day = total sales through the last full hour ÷ last year's share of the day done by that hour. Alerts mark hours where total sales fell below 55% of the hour target while orders held up (returns posting), or ran above 160% of it. Sessions include some automated traffic (noted since June 2026).`;
 
 // ---------- screen view
 let sChart, srm='cum', tickT, rot;
