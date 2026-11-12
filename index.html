@@ -797,18 +797,21 @@ function openPd(row){
   if(pdOpen===key){ closePd(); return; } closePd(); pdOpen = key; row.classList.add('on');
   const lp = p.lp, n0 = v => Math.round(v).toLocaleString('en-CA');
   const lyNow = sum(p.lyh||[], DONE) + ((p.lyh||[])[NOW]||0)*(M.now_m/60);
-  const st = lp ? [['Product page sessions', n0(lp[0]), 'Sessions that landed on this product page today'],
-      ['Added to cart', n0(lp[1]), pct(lp[1]/(lp[0]||1),1)+' of those sessions'],
-      ['Reached checkout', n0(lp[2]), pct(lp[2]/(lp[0]||1),1)+' of those sessions'],
-      ['Completed checkout', n0(lp[3]), 'Orders from sessions that started here'],
-      ['Conversion', pct(lp[3]/(lp[0]||1),2), 'vs site '+pct(K.cc[0]/K.sessions[0],2)]]
+  // Shopify only reports sessions by LANDING page (the first page of a visit); it has no product page views.
+  // Most buyers land on the homepage, an email, search or a collection first, so these counts are small next to units sold (Ryan, 12 Nov 2026).
+  const lpThin = lp && lp[0] < 50;
+  const st = lp ? [['Units sold today', n0(p.units), `${K$(p.gross)} across all entry points`],
+      ['Visits that started here', n0(lp[0]), `of ${n0(K.sessions[0])} site sessions today`],
+      ['Added to cart', n0(lp[1]), lpThin?'from those visits':pct(lp[1]/(lp[0]||1),1)+' of those visits'],
+      ['Completed checkout', n0(lp[3]), 'orders from those visits (any products)'],
+      ['Entry-page conversion', lpThin?'Too few':pct(lp[3]/(lp[0]||1),2), lpThin?'under 50 visits, not a reliable rate':'vs site '+pct(K.cc[0]/K.sessions[0],2)]]
     : [['Sales today', K$(p.gross), p.units+' units'],['Same hours LY', p.ly?K$(p.ly):'–', p.ly?(p.gross>=p.ly?'+':'')+pct(p.gross/p.ly-1,0)+' vs LY':'no sales LY'],['7-day average', p.avg7?K$(p.avg7):'$0', 'to the same time of day'],['Stock', p.inv==null?'–':n0(p.inv), 'units on hand, all locations'],['Product page', '–', 'funnel arrives with the next hourly update']];
   const el = document.createElement('div'); el.className = 'card pdrill';
   el.innerHTML = `<div class="pd-h">${p.img?`<img src="${p.img}" alt="">`:'<span class="noimg"></span>'}<div style="min-width:0"><h3>${esc(p.t)}</h3>
       <div class="sub"><span><b style="color:var(--fg)">${K$(p.gross)}</b> today · ${p.units} units</span><span>${p.ly?`LY same hours ${K$(p.ly)}`:'No sales LY'}</span><span>7-day avg ${p.avg7?K$(p.avg7):'$0'}</span>${stock(p)}<a href="${url(p)}" target="_blank" rel="noopener">Open on jdsports.ca ↗</a></div></div>
       <button class="pill sm closeb" aria-label="Close">✕ Close</button></div>
     <div class="pd-stats">${st.map(s=>`<div><div class="lbl">${s[0]}</div><b class="num">${s[1]}</b><span>${s[2]}</span></div>`).join('')}</div>
-    <div class="pd-note">${lp?'Product page funnel = sessions that landed on this product page today (Shopify landing page), so completed checkouts can include other products in the basket.':''} Chart: this product's sales by hour today vs the same day last year.</div>
+    <div class="pd-note">${lp?`Shopify counts visits by the page they <b>started</b> on, not every product page view, so only ${n0(lp[0])} visits began on this page while ${n0(p.units)} units sold: most buyers came in through the homepage, an email, search or a collection. Includes the French page.`:''} Chart: this product's sales by hour today vs the same day last year.</div>
     <div class="pd-chart"><canvas></canvas></div>`;
   const grid = row.parentElement; const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').length;
   const kids = [...grid.children].filter(x=>x.classList.contains('trow')); const idx = kids.indexOf(row); const after = kids[Math.min(kids.length-1, idx - idx%cols + cols-1)];
