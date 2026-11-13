@@ -522,9 +522,9 @@ const gap = totNow - tgtNow;
 
 // ---------- header
 $('hmeta').innerHTML = `<span class="live-dot"><i></i>Live</span><span><b>${dateTxt}</b></span><span>Phase <b>${esc(M.phase||'–')}</b></span><span>Spend plan <b>${esc(SP.day_type||'–')}</b></span><span>Compared with <b>${lyTxt}</b></span>`;
-// Runs start on the hour and publish about 8 to 10 minutes later; say so, so nobody waits for the stroke of the hour.
-(() => { const wd = new Date(Date.now() - 7*3600e3).getUTCDay(), nh = NOW + 1, has = wd >= 1 && wd <= 5 && nh >= 9 && nh <= 17;
-  $('fresh').innerHTML = `Updated <b>${upd} PT</b>` + (has ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':10$1')}, updates itself` : ' · updates itself hourly, weekdays 9 to 5'); })();
+// Runs start just after the hour and publish about 10 to 15 minutes later; say so, so nobody waits for the stroke of the hour.
+(() => { const nh = NOW + 1, has = nh >= 6 && nh <= 23;   // cloud run every day, 6am to 11pm (13 Nov 2026)
+  $('fresh').innerHTML = `Updated <b>${upd} PT</b>` + (has ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':15$1')}, updates itself` : ' · updates itself hourly, 6am to 11pm'); })();
 
 // ---------- pace strip
 $('p-rev').textContent = D$(totNow);
