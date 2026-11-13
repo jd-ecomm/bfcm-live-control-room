@@ -24,6 +24,7 @@ NOW = dt.datetime.now(PT)
 TODAY = NOW.date()
 LY = TODAY - dt.timedelta(days=364)
 T = 'SINCE today UNTIL today'
+NR3 = 'SHOW customers, orders, gross_sales, discounts, total_sales GROUP BY hour, new_or_returning_customer'   # 13 Nov 2026
 FS = 'SHOW sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout'
 J = lambda n: json.loads((D / n).read_text()) if (D / n).exists() else {}
 
@@ -40,6 +41,7 @@ def packs():
         'fdev': f'FROM sessions {FS} GROUP BY hour, session_device_type {T} ORDER BY hour LIMIT 1000',
         'fref': f'FROM sessions {FS} GROUP BY hour, referrer_source {T} ORDER BY hour LIMIT 1000',
         'rt': 'FROM sales SHOW total_sales, net_sales SINCE -28d UNTIL -1d',
+        'tdNR3': f'FROM sales {NR3} {T} ORDER BY hour',
     }
     if plan()['lyFun']:
         today['fdevL'] = f'FROM sessions {FS} GROUP BY hour, session_device_type {L} ORDER BY hour LIMIT 1000'
@@ -48,6 +50,7 @@ def packs():
         'lyNR2': f'FROM sales SHOW total_sales, net_sales, orders GROUP BY hour, new_or_returning_customer {L} ORDER BY hour',
         'lyPH': f'FROM sales SHOW gross_sales, net_items_sold GROUP BY product_id, hour {L} LIMIT 10000',
         'utmL': f'FROM sessions SHOW sessions GROUP BY hour, utm_medium {L} ORDER BY hour LIMIT 10000',
+        'lyNR3': f'FROM sales {NR3} {L} ORDER BY hour',
     }
     p7 = {f'd{n}': f'FROM sales SHOW gross_sales GROUP BY product_id, hour SINCE {TODAY - dt.timedelta(days=n)} UNTIL {TODAY - dt.timedelta(days=n)} LIMIT 10000'
           for n in range(1, 8)}
@@ -77,7 +80,7 @@ def plan():
     return {
         'today': str(TODAY), 'ly': str(LY), 'now': NOW.strftime('%H:%M'),
         'p7': not str(p7.get('cut', '')).endswith(str(TODAY - dt.timedelta(days=1))[5:]),
-        'lyFill': not (has_day(r2.get('lyNR2'), LY) and has_day(r3.get('lyPH'), LY) and has_day(r3.get('utmL'), LY)),
+        'lyFill': not (has_day(r2.get('lyNR2'), LY) and has_day(r3.get('lyPH'), LY) and has_day(r3.get('utmL'), LY) and has_day(r3.get('lyNR3'), LY)),
         'lyFun': not has_day(r3.get('fdevL'), LY),
     }
 
@@ -168,12 +171,12 @@ def main():
         print(json.dumps(q))
     elif a.cmd == 'assemble':
         d = load(a.today)
-        o = {k: table(d, k) for k in ('tdT', 'tdFn', 'tdNR2', 'utmT', 'pH', 'lp', 'fdev', 'fref', 'fdevL', 'frefL')}
+        o = {k: table(d, k) for k in ('tdT', 'tdFn', 'tdNR2', 'tdNR3', 'utmT', 'pH', 'lp', 'fdev', 'fref', 'fdevL', 'frefL')}
         o = {k: v for k, v in o.items() if v is not None}
         o['ratio28'] = [float(x) for x in table(d, 'rt')['r'][0]]
         if a.lyfill:
             dl = load(a.lyfill)
-            for k in ('lyNR2', 'lyPH', 'utmL'):
+            for k in ('lyNR2', 'lyPH', 'utmL', 'lyNR3'):
                 o[k] = table(dl, k)
         if a.p7:
             o['p7'] = reduce_p7(load(a.p7))

@@ -59,3 +59,13 @@ Same ShopifyQL as tools/pull_today.js, no work PC or browser needed. Tested agai
 3. `python3 tools/connector_pull.py query products --today <today file>`, run it the same way.
 4. `python3 tools/connector_pull.py assemble --today F [--p7 F] [--lyfill F] --products F --out pull.json`, then merge_pull.py, compute.py, build.py as usual.
 Thumbnails are CDN links (the cloud cannot fetch cdn.shopify.com to embed them).
+
+## New vs returning (Ryan, 13 Nov 2026)
+- Pack `tdNR3` (today) and cache `lyNR3` (shopify_raw3.json): `FROM sales SHOW customers, orders, gross_sales, discounts,
+  total_sales GROUP BY hour, new_or_returning_customer`. lyNR3 was filled once for 13 Nov 2025 to 4 Jan 2026 (2,543 rows),
+  so the hourly runs only pull today's; plan() still asks for lyFill if a day is missing.
+- The fifth card is now New / returning customers (counts, vs LY to the same minute). Clicking it opens customers by hour.
+- Revenue (click the Total revenue card), Orders and AOV drill-downs have an All / New & returning switch: two lines today,
+  same two dashed for last year. AOV per segment = (gross sales less discounts) ÷ orders, the headline AOV basis.
+- tools/pull_today.js (work-PC fallback) does not pull these yet; the page falls back to the old revenue-share card without them.
+

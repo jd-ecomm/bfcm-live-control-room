@@ -302,6 +302,20 @@ def nr_h(pack, day):
     return {k: R2_(v) for k, v in o.items()}
 R2_ = lambda a: [round(x, 2) for x in a]
 NRH = {'today': nr_h(r2['tdNR2'], today), 'ly': nr_h(r2['lyNR2'], ly_day)}
+# new vs returning by hour: customers, orders, gross, discounts, total sales (Ryan, 13 Nov 2026: customer counts on the card,
+# and a New & returning split on the Revenue, Orders and AOV drill-downs)
+def nr3(pack, day):
+    keys = ['customers', 'orders', 'gross_sales', 'discounts', 'total_sales']
+    o = {s: {k: [0.0] * 24 for k in keys} for s in ('New', 'Returning')}
+    if not pack or not pack.get('c'): return None
+    c = pack['c']
+    for r in pack['r']:
+        d, h = loc(r[0])
+        s_ = r[c.index('new_or_returning_customer')]
+        if d != day or s_ not in o: continue
+        for k in keys: o[s_][k][h] += num(r[c.index(k)])
+    return {s_: {k: R2_(v) for k, v in m.items()} for s_, m in o.items()}
+NR3 = {'today': nr3(r2.get('tdNR3'), today), 'ly': nr3(r3.get('lyNR3'), ly_day)}
 
 # ---------- funnel split by device and traffic source (click a funnel step), today vs LY to the same minute
 FSK = ['sessions', 'sessions_with_cart_additions', 'sessions_that_reached_checkout', 'sessions_that_completed_checkout']
@@ -376,7 +390,7 @@ model = {
     'products': {'top': top, 'trending': trending, 'extra': extra, 'new': [q['t'] for q in new_in], 'rules': RULES},
     'utm': {'today': {k: R2(v) for k, v in U.items()}, 'ly': {k: R2(v) for k, v in UW.items()}},
     'ticker': ticker, 'notes': notes, 'snapshot': snap, 'lp_ok': bool(LP),
-    'hourtop': hourtop, 'nrh': NRH, 'fsplit': FSPLIT, 'camp': CAMP,
+    'hourtop': hourtop, 'nrh': NRH, 'nr3': NR3, 'fsplit': FSPLIT, 'camp': CAMP,
 }
 json.dump(model, open(D / 'model.json', 'w'), separators=(',', ':'))
 print(json.dumps({k: model[k] for k in ['pulled', 'target_day', 'pred', 'need_rest', 'ratio', 'funnel', 'mer', 'notes']}, indent=1))

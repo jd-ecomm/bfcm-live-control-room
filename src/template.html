@@ -210,6 +210,9 @@ a.xl:hover .nm{color:var(--yellow)}
 
 /* KPI drill-down */
 .kpi{cursor:pointer;transition:border-color .15s,transform .15s}
+#dr-sp[hidden]{display:none!important}
+#dr-sp{gap:6px;margin-right:8px}
+.pc.lead.on{border-color:var(--yellow)}
 .kpi:hover{border-color:#4a4a4a}
 .kpi.on{border-color:var(--yellow);box-shadow:0 0 0 1px var(--yellow) inset}
 .kpi .hint{font-size:10px;color:var(--fg3);margin-top:8px;letter-spacing:.06em;text-transform:uppercase}
@@ -389,7 +392,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
 <main id="live">
   <section class="wrap">
     <div class="grid3">
-      <div class="card pc lead">
+      <div class="card pc lead" data-k="total" role="button" tabindex="0" style="cursor:pointer">
         <div class="lbl">Total revenue vs target</div>
         <div class="big dsp num" id="p-rev"></div>
         <div class="track"><div class="fill" id="p-fill"></div><div class="mk" id="p-now"><span>Pace now</span></div></div>
@@ -415,7 +418,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
 
   <section class="wrap">
     <div class="kpis" id="kpis"></div>
-    <div class="card drill" id="drill" hidden><div class="ch-h"><div><h3 class="dsp" id="dr-t"></h3><div class="note" id="dr-n"></div></div><div class="seg" id="dr-seg"><button class="pill sm" data-dm="cum">Running total</button><button class="pill sm on" data-dm="hr">Per hour</button><button class="pill sm closeb" id="dr-x" aria-label="Close the hourly view">✕ Close</button></div></div><div class="cbox"><canvas id="cDr"></canvas></div><div class="legend" id="dr-lg"><span><i style="background:var(--yellow);height:4px"></i>Today</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span id="dr-tl"><i class="dash"></i>Target</span></div></div>
+    <div class="card drill" id="drill" hidden><div class="ch-h"><div><h3 class="dsp" id="dr-t"></h3><div class="note" id="dr-n"></div></div><div class="seg" id="dr-seg"><span class="seg" id="dr-sp"><button class="pill sm on" data-sp="all">All</button><button class="pill sm" data-sp="nr">New &amp; returning</button></span><button class="pill sm" data-dm="cum">Running total</button><button class="pill sm on" data-dm="hr">Per hour</button><button class="pill sm closeb" id="dr-x" aria-label="Close the hourly view">✕ Close</button></div></div><div class="cbox"><canvas id="cDr"></canvas></div><div class="legend" id="dr-lg"><span><i style="background:var(--yellow);height:4px"></i>Today</span><span><i style="background:var(--fg3)"></i>Same day last year</span><span id="dr-tl"><i class="dash"></i>Target</span></div></div>
     <p class="lbl" style="margin:12px 0 0;font-weight:600;letter-spacing:.06em" id="kpinote"></p>
   </section>
 
@@ -554,6 +557,11 @@ $('p-lhc').innerHTML = lhr>=1 ? '<span class="chip good">Beat the hour target</s
 const cvr = [K.cc[0]/K.sessions[0], K.cc[1]/K.sessions[1]];
 const nT = M.nr.today, nL = M.nr.ly;
 const newSh = [nT.New[0]/(nT.New[0]+nT.Returning[0]), nL.New[0]/(nL.New[0]+nL.Returning[0])];
+// customers: new and returning customer counts, today so far vs LY to the same minute (Ryan, 13 Nov 2026)
+const N3 = M.nr3 && M.nr3.today && M.nr3.ly ? M.nr3 : null, soFar3 = a => sum(a, NOW+1), lySoFar3 = a => sum(a, NOW) + (a[NOW]||0)*M.now_m/60;
+const cuT = N3 ? [soFar3(N3.today.New.customers), soFar3(N3.today.Returning.customers)] : null;
+const cuL = N3 ? [lySoFar3(N3.ly.New.customers), lySoFar3(N3.ly.Returning.customers)] : null;
+const cuSh = N3 ? [cuT[0]/((cuT[0]+cuT[1])||1), cuL[0]/((cuL[0]+cuL[1])||1)] : newSh;
 function spark(a, b){ const n=DONE, A=a.slice(0,n), B=b.slice(0,n), all=A.concat(B), mx=Math.max(...all), mn=Math.min(...all);
   const P_ = arr => arr.map((v,i)=>[i/(n-1||1)*100, 32-(v-mn)/(mx-mn||1)*30]); const path = p => p.map((q,i)=>(i?'L':'M')+q[0].toFixed(1)+' '+q[1].toFixed(1)).join(' ');
   const pa = P_(A), pb = P_(B);
@@ -564,11 +572,12 @@ const kp = [
   ['AOV', '$'+K.aov[0].toFixed(0), arrow(dl(K.aov[0],K.aov[1])), spark(rate(H.total,H.orders), rate(H.ly_total,H.ly_orders))],
   ['Conversion', pct(cvr[0],2), pts(cvr[0],cvr[1]), spark(rate(H.cc,H.sessions), rate(H.ly_cc,H.ly_sessions))],
   ['Sessions', Math.round(K.sessions[0]).toLocaleString('en-CA'), arrow(dl(K.sessions[0],K.sessions[1])), spark(H.sessions, H.ly_sessions)],
-  ['New customers', pct(newSh[0],0), pts(newSh[0],newSh[1]), `<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="6" width="100" height="9" rx="4" fill="#222"/><rect x="0" y="6" width="${newSh[0]*100}" height="9" rx="4" fill="${C.y}"/><rect x="0" y="21" width="100" height="5" rx="2.5" fill="#222"/><rect x="0" y="21" width="${newSh[1]*100}" height="5" rx="2.5" fill="${C.fg3}"/></svg>`],
+  N3 ? ['New / returning customers', `${Math.round(cuT[0]).toLocaleString('en-CA')}<span style="color:var(--fg3)"> / </span><span style="color:var(--teal)">${Math.round(cuT[1]).toLocaleString('en-CA')}</span>`, `New ${arrow(dl(cuT[0],cuL[0]))} · Returning ${arrow(dl(cuT[1],cuL[1]))}`, `<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="6" width="100" height="9" rx="4" fill="${C.t}"/><rect x="0" y="6" width="${cuSh[0]*100}" height="9" rx="4" fill="${C.y}"/><rect x="0" y="21" width="100" height="5" rx="2.5" fill="#222"/><rect x="0" y="21" width="${cuSh[1]*100}" height="5" rx="2.5" fill="${C.fg3}"/></svg>`]
+     : ['New customers', pct(newSh[0],0), pts(newSh[0],newSh[1]), `<svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="6" width="100" height="9" rx="4" fill="#222"/><rect x="0" y="6" width="${newSh[0]*100}" height="9" rx="4" fill="${C.y}"/><rect x="0" y="21" width="100" height="5" rx="2.5" fill="#222"/><rect x="0" y="21" width="${newSh[1]*100}" height="5" rx="2.5" fill="${C.fg3}"/></svg>`],
 ];
 const kKeys = ['orders','aov','cvr','sessions','newc'];
 $('kpis').innerHTML = kp.map((k,i) => `<div class="card kpi" ${kKeys[i]?`data-k="${kKeys[i]}" role="button" tabindex="0"`:''}><div class="lbl">${k[0]}</div><div class="v dsp num">${k[1]}</div><div class="d">${k[2]}</div>${k[3]}${kKeys[i]?'<div class="hint">Click for hourly view</div>':''}</div>`).join('');
-$('kpinote').textContent = `Today so far, to ${upd}, against ${lyTxt} to the same time. Grey line in each sparkline is last year. Click a card to open it by hour; click again, press Esc or click anywhere else to close. New customers is their share of total revenue.`;
+$('kpinote').textContent = `Today so far, to ${upd}, against ${lyTxt} to the same time. Grey line in each sparkline is last year. Click a card to open it by hour; click again, press Esc or click anywhere else to close. New / returning customers counts customers who ordered (yellow new, teal returning); the bar is the new share, grey is last year.`;
 
 // ---------- chart plumbing
 Chart.defaults.font.family = "'Inter Tight', Arial, sans-serif"; Chart.defaults.font.size = 11; Chart.defaults.color = C.fg3;
@@ -915,7 +924,7 @@ if(ct){
 } else { $('ful').innerHTML = '<div class="card" style="color:var(--fg3)">No Open Order Snapshot yet today.</div>'; }
 
 // ---------- KPI drill-down
-let drK=null, drM='hr', cDr;
+let drK=null, drM='hr', drS='all', cDr;
 const DR = {
   total:{t:'Total revenue', a:H.total, l:H.ly_total, tg:H.target, f:D$, cum:true},
   orders:{t:'Orders', a:H.orders, l:H.ly_orders, f:v=>Math.round(v).toLocaleString('en-CA'), cum:true},
@@ -923,12 +932,15 @@ const DR = {
   cvr:{t:'Conversion', a:H.cc.map((v,i)=>H.sessions[i]?v/H.sessions[i]:null), l:H.ly_cc.map((v,i)=>H.ly_sessions[i]?v/H.ly_sessions[i]:null), f:v=>pct(v,2), cum:false},
   sessions:{t:'Sessions', a:H.sessions, l:H.ly_sessions, f:v=>Math.round(v).toLocaleString('en-CA'), cum:true},
   // New customers card: new and returning customer revenue as two lines, last year dashed (Ryan, 12 Nov 2026)
-  newc:{t:'New vs returning customer revenue', multi:true, f:D$, cum:true},
+  newc:{t:'New vs returning customers', multi:true, f:D$, cum:true},
 };
 const drLegend = $('dr-lg').innerHTML;
 function drawDrill(){
   const d = DR[drK]; if(!d) return; const mode = d.cum ? drM : 'hr';
-  if(d.multi) return drawNewRet(mode);
+  const canSplit = !!N3 && ['total','orders','aov'].includes(drK);
+  $('dr-sp').hidden = !canSplit; $('dr-sp').querySelectorAll('[data-sp]').forEach(b=>b.classList.toggle('on', b.dataset.sp===drS));
+  if(d.multi) return drawNewRet(mode, N3 ? 'customers' : 'rev');
+  if(canSplit && drS==='nr') return drawNewRet(mode, drK);
   $('dr-lg').innerHTML = drLegend;
   $('dr-t').textContent = d.t + (mode==='cum'?' · running total':' · by hour');
   $('dr-n').textContent = `Today vs ${lyTxt}${d.tg?' and the hourly target':''}. ${d.cum?'':'Each point is that hour on its own.'}`;
@@ -943,33 +955,48 @@ function drawDrill(){
     scales:{x:xS(), y:{grid, border:{display:false}, beginAtZero:d.cum, ticks:{callback:v=>d.f(v), padding:10, maxTicksLimit:7}}},
     plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum'?'By '+hl(Math.round(x)):h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+d.f(it.parsed.y)}}}}});
 }
-function drawNewRet(mode){
-  const T = M.nrh.today, L = M.nrh.ly, fr = M.now_m/60;
-  const soFar = a => sum(a, NOW+1), lySoFar = a => sum(a, NOW) + (a[NOW]||0)*fr;   // today to now vs LY to the same minute
-  const nT = soFar(T.New), nL = lySoFar(L.New), rT = soFar(T.Returning), rL = lySoFar(L.Returning);
-  $('dr-t').textContent = d0(mode);
-  function d0(m){ return 'New vs returning customer revenue' + (m==='cum'?' · running total':' · by hour'); }
+function drawNewRet(mode, kind){
+  // kind: 'rev' (old revenue split, fallback), 'customers', 'total', 'orders', 'aov' (Ryan, 13 Nov 2026)
+  const fr = M.now_m/60, soFar = a => sum(a, NOW+1), lySoFar = a => sum(a, NOW) + (a[NOW]||0)*fr;
+  let T, L, f = D$, title, what, rate = false;
+  if(kind==='rev'){ T = {New:M.nrh.today.New, Returning:M.nrh.today.Returning}; L = {New:M.nrh.ly.New, Returning:M.nrh.ly.Returning}; title='New vs returning customer revenue'; what='Shopify total sales by new or returning customer'; }
+  else {
+    const S = M.nr3, pick = (o, k) => ({New:o.New[k], Returning:o.Returning[k]});
+    if(kind==='customers'){ T = pick(S.today,'customers'); L = pick(S.ly,'customers'); f = v=>Math.round(v).toLocaleString('en-CA'); title='New vs returning customers'; what='Customers who placed an order, new or returning'; }
+    if(kind==='total'){ T = pick(S.today,'total_sales'); L = pick(S.ly,'total_sales'); title='Total revenue · new vs returning'; what='Shopify total sales by new or returning customer'; }
+    if(kind==='orders'){ T = pick(S.today,'orders'); L = pick(S.ly,'orders'); f = v=>Math.round(v).toLocaleString('en-CA'); title='Orders · new vs returning'; what='Orders from new or returning customers'; }
+    if(kind==='aov'){ rate = true; f = v=>'$'+Math.round(v); title='AOV · new vs returning'; what='AOV (gross sales less discounts ÷ orders) for new and returning customers';
+      const av = (o, s_) => o[s_].orders.map((n,i)=> n ? (o[s_].gross_sales[i]+o[s_].discounts[i])/n : null);
+      T = {New:av(S.today,'New'), Returning:av(S.today,'Returning')}; L = {New:av(S.ly,'New'), Returning:av(S.ly,'Returning')}; }
+  }
+  if(rate) mode = 'hr';
+  const tot = (o, s_, ly) => { if(!rate) return (ly?lySoFar:soFar)(o[s_]); const S = M.nr3[ly?'ly':'today'][s_], g = (ly?lySoFar:soFar)(S.gross_sales)+(ly?lySoFar:soFar)(S.discounts), n = (ly?lySoFar:soFar)(S.orders); return n ? g/n : null; };
+  const nT = tot(T,'New'), nL = tot(L,'New',true), rT = tot(T,'Returning'), rL = tot(L,'Returning',true);
+  const big = v => rate || f!==D$ ? f(v) : K$(v);
+  $('dr-t').textContent = title + (mode==='cum'?' · running total':' · by hour');
   const nw = h => `<span style="white-space:nowrap">${h}</span>`;
-  $('dr-n').innerHTML = `${nw(`<b style="color:var(--yellow)">New ${K$(nT)}</b> ${arrow(dl(nT,nL))} (LY ${K$(nL)})`)} &nbsp;·&nbsp; ${nw(`<b style="color:var(--teal)">Returning ${K$(rT)}</b> ${arrow(dl(rT,rL))} (LY ${K$(rL)})`)}<br>Shopify total sales by new or returning customer, today to ${upd} vs ${lyTxt} to the same time. An hour below zero means returns booked that hour outweighed new sales.`;
-  $('dr-seg').querySelectorAll('[data-dm]').forEach(b=>{ b.hidden = false; b.classList.toggle('on', b.dataset.dm===mode); });
-  $('dr-lg').innerHTML = `<span><i style="background:var(--yellow);height:4px"></i>New customers today</span><span><i style="background:var(--teal);height:4px"></i>Returning customers today</span><span><i style="background:repeating-linear-gradient(90deg,var(--yellow) 0 5px,transparent 5px 8px)"></i>New, same day last year</span><span><i style="background:repeating-linear-gradient(90deg,var(--teal) 0 5px,transparent 5px 8px)"></i>Returning, same day last year</span>`;
-  const mk = (arr, upto) => mode==='cum' ? series(arr.map(v=>v||0),'cum',upto) : arr.map((v,i)=>({x:i+.5,y:v})).filter((p,i)=>upto==null||i<upto);
+  $('dr-n').innerHTML = `${nw(`<b style="color:var(--yellow)">New ${big(nT)}</b> ${arrow(dl(nT,nL))} (LY ${big(nL)})`)} &nbsp;·&nbsp; ${nw(`<b style="color:var(--teal)">Returning ${big(rT)}</b> ${arrow(dl(rT,rL))} (LY ${big(rL)})`)}<br>${what}, today to ${upd} vs ${lyTxt} to the same time.${kind==='total'||kind==='rev'?' An hour below zero means returns booked that hour outweighed new sales.':''}`;
+  $('dr-seg').querySelectorAll('[data-dm]').forEach(b=>{ b.hidden = rate; b.classList.toggle('on', b.dataset.dm===mode); });
+  const lab = kind==='customers'||kind==='rev' ? ['New customers today','Returning customers today','New, same day last year','Returning, same day last year'] : ['New today','Returning today','New, same day last year','Returning, same day last year'];
+  $('dr-lg').innerHTML = `<span><i style="background:var(--yellow);height:4px"></i>${lab[0]}</span><span><i style="background:var(--teal);height:4px"></i>${lab[1]}</span><span><i style="background:repeating-linear-gradient(90deg,var(--yellow) 0 5px,transparent 5px 8px)"></i>${lab[2]}</span><span><i style="background:repeating-linear-gradient(90deg,var(--teal) 0 5px,transparent 5px 8px)"></i>${lab[3]}</span>`;
+  const mk = (arr, upto) => mode==='cum' ? series(arr.map(v=>v||0),'cum',upto) : arr.map((v,i)=>({x:i+.5,y:v})).filter((p,i)=>(upto==null||i<upto) && p.y!=null);
   const ln = (label, data, col, dash, w) => ({label, data, borderColor:col, borderWidth:w, borderDash:dash, pointRadius:mode==='hr'&&!dash?3:0, pointBackgroundColor:col, tension:.32});
-  const ds = [ln('New today', mk(T.New, DONE), C.y, undefined, 3.2), ln('Returning today', mk(T.Returning, DONE), C.t, undefined, 3.2),
-    ln('New last year', mk(L.New), C.y, [6,5], 1.8), ln('Returning last year', mk(L.Returning), C.t, [6,5], 1.8)];
+  const ds = [ln(lab[0], mk(T.New, DONE), C.y, undefined, 3.2), ln(lab[1], mk(T.Returning, DONE), C.t, undefined, 3.2),
+    ln(lab[2], mk(L.New), C.y, [6,5], 1.8), ln(lab[3], mk(L.Returning), C.t, [6,5], 1.8)];
   ds[0].glow = 12;
   if(cDr) cDr.destroy();
   cDr = new Chart($('cDr'), {type:'line', data:{datasets:ds}, options:{responsive:true, maintainAspectRatio:false, parsing:false, interaction:{mode:'nearest', axis:'x', intersect:false},
-    scales:{x:xS(), y:yS()}, plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum'?'By '+hl(Math.round(x)):h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)}}}}});
+    scales:{x:xS(), y:{grid, border:{display:false}, beginAtZero:!rate, ticks:{callback:v=>f===D$?K$(v):f(v), padding:10, maxTicksLimit:7}}}, plugins:{nowshade:{x:NOWX}, tooltip:{callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum'?'By '+hl(Math.round(x)):h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+f(it.parsed.y)}}}}});
 }
-document.querySelectorAll('.kpi').forEach(el => el.onclick = () => { const k = el.dataset.k; if(!DR[k]) return;
+document.querySelectorAll('#live [data-k]').forEach(el => el.onclick = () => { const k = el.dataset.k; if(!DR[k]) return;
   if(drK===k){ drK=null; $('drill').hidden=true; } else { if(k==='newc') drM='cum'; drK=k; $('drill').hidden=false; drawDrill(); $('drill').scrollIntoView({behavior:'smooth', block:'nearest'}); }
-  document.querySelectorAll('.kpi').forEach(x=>x.classList.toggle('on', x.dataset.k===drK)); });
+  document.querySelectorAll('#live [data-k]').forEach(x=>x.classList.toggle('on', x.dataset.k===drK)); });
+document.querySelectorAll('[data-sp]').forEach(b => b.onclick = () => { drS=b.dataset.sp; if(drS==='nr' && drK!=='aov') drM='cum'; drawDrill(); });
 document.querySelectorAll('[data-dm]').forEach(b => b.onclick = () => { drM=b.dataset.dm; drawDrill(); });
-const closeDrill = () => { drK=null; $('drill').hidden=true; document.querySelectorAll('.kpi').forEach(x=>x.classList.remove('on')); };
+const closeDrill = () => { drK=null; $('drill').hidden=true; document.querySelectorAll('#live [data-k]').forEach(x=>x.classList.remove('on')); };
 $('dr-x').onclick = closeDrill;
 document.addEventListener('keydown', e => { if(e.key==='Escape' && drK) closeDrill(); });
-document.addEventListener('click', e => { if(drK && !e.target.closest('#drill') && !e.target.closest('.kpi')) closeDrill(); });
+document.addEventListener('click', e => { if(drK && !e.target.closest('#drill') && !e.target.closest('#live [data-k]')) closeDrill(); });
 
 $('foot').innerHTML = `<b>Sources.</b> Shopify Analytics (ShopifyQL), pulled ${M.pulled} PT, store time zone America/Vancouver. Google Ads from the "JD Ads - Intraday &amp; Alerts" sheet. Meta from the JD_CANADA ad account. Daily targets and funnel plan from the Predictive Revenue Model. Budget from the BFCM spend plan. Open orders from the Open Order Snapshot email. Email send times from Klaviyo; ticker channel traffic from UTM medium.<br><b>Definitions.</b> Total revenue = Shopify total sales. AOV = (gross sales less discounts) ÷ orders, Shopify's Average order value basis. Conversion = sessions that completed checkout ÷ sessions. MER headline = Shopify total sales ÷ Google + Meta spend, like for like with last year; the all-in figure adds the Shop and Pinterest daily lines pro-rated. Predicted end of day = total sales through the last full hour ÷ last year's share of the day done by that hour. Alerts mark hours where total sales fell below 55% of the hour target while orders held up (returns posting), or ran above 160% of it. Sessions include some automated traffic (noted since June 2026).`;
 
@@ -978,7 +1005,7 @@ let sChart, srm='cum', tickT, rot;
 function clock(){ $('s-clk').innerHTML = new Date().toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit',timeZone:'America/Vancouver'}).replace(/\s?([ap])\.?\s?m\.?/i,(m,a)=>' '+a.toUpperCase()+'M') + `<span>Data to ${upd} PT</span>`; }
 function screen(){
   $('s-date').innerHTML = `${dateTxt}<span>${esc(M.phase||'')} · vs ${lyTxt}</span>`; clock();
-  const strip = n => { n.removeAttribute('id'); n.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id')); n.removeAttribute('role'); n.removeAttribute('tabindex'); return n; };
+  const strip = n => { n.removeAttribute('data-k'); n.removeAttribute('id'); n.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id')); n.removeAttribute('role'); n.removeAttribute('tabindex'); return n; };
   $('s-pace').innerHTML = ''; document.querySelectorAll('#live .grid3 > .card').forEach(c => $('s-pace').appendChild(strip(c.cloneNode(true))));
   $('s-kpis').innerHTML = ''; document.querySelectorAll('#kpis > .kpi').forEach(c => { const n = strip(c.cloneNode(true)); n.classList.remove('on'); delete n.dataset.k; $('s-kpis').appendChild(n); });
   drawScreenChart();

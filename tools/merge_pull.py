@@ -17,6 +17,7 @@ r2.setdefault('imgs', {}).update(o.get('imgs') or {})
 r2['pulled'] = o['pulled']
 r2['lp'] = o.get('lp')   # landing-page funnel today (None if the query failed)
 r2['fdev'], r2['fref'] = o.get('fdev'), o.get('fref')   # funnel by device / traffic source, by hour today
+if o.get('tdNR3'): r2['tdNR3'] = o['tdNR3']   # customers, orders, gross, discounts, total by hour x new/returning (13 Nov 2026)
 
 def add(store, key, pack):
     if not pack: return
@@ -29,6 +30,7 @@ add(r3, 'lyPH', o.get('lyPH'))
 add(r3, 'utmL', o.get('utmL'))
 add(r3, 'fdevL', o.get('fdevL'))
 add(r3, 'frefL', o.get('frefL'))
+add(r3, 'lyNR3', o.get('lyNR3'))
 
 ids = {str(x[0]) for x in r1['P']}
 r1['P'] += [p for p in o.get('newP') or [] if str(p[0]) not in ids]
