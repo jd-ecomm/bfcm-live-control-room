@@ -1,2 +1,3 @@
 out/
 *.xlsx
+tools/__pycache__/

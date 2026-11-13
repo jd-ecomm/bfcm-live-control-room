@@ -51,3 +51,11 @@ Then `python3 tools/compute.py [YYYY-MM-DD]` and `python3 tools/build.py`. Fonts
 - Product rows -> product drill-down (landing-page funnel); fulfilment regions -> stores; KPI cards -> hourly view; chart notes collapse to short pills.
 - Auto-refresh: tools/build.py writes data/version.json (a stamp of the built page). Every open page reads it once a minute with caching off and reloads itself when it changes, keeping the same view. Always commit data/version.json with index.html.
 - Refresh pulse (Ryan, 12 Nov 2026): when a page reloads itself for new data, a yellow glow rises from the bottom of the screen for about 3 seconds. It lives in the standalone cr-refresh script (sessionStorage flag cr_pulse set just before the reload). Test with `__crRefresh.pulse()` in the console. The header says when the next update is due (about :10 past the hour).
+
+## Cloud pull through the Shopify connector (added 13 Nov 2026, tested 12:54 PT)
+Same ShopifyQL as tools/pull_today.js, no work PC or browser needed. Tested against the 12:05 browser pull: every completed hour matched to the cent.
+1. `python3 tools/connector_pull.py plan` says which packs are needed (p7 on the first run of the day, lyFill / lyFun when the LY caches lack the day).
+2. `python3 tools/connector_pull.py query today` (and `p7`, `lyfill` when needed) prints {query, variables}. Pass both exactly to the Shopify connector's graphql_query. The answer is saved to a tool-results file (the today pack is padded so it always spills); never retype it.
+3. `python3 tools/connector_pull.py query products --today <today file>`, run it the same way.
+4. `python3 tools/connector_pull.py assemble --today F [--p7 F] [--lyfill F] --products F --out pull.json`, then merge_pull.py, compute.py, build.py as usual.
+Thumbnails are CDN links (the cloud cannot fetch cdn.shopify.com to embed them).
