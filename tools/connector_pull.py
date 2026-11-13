@@ -125,7 +125,7 @@ def product_ids(today_file):
     top = {pid for m in hb.values() for pid, _ in sorted(m.items(), key=lambda kv: -kv[1])[:8]}
     big = [pid for pid in g if g[pid] >= 300]
     want = [pid for pid in big if pid not in known] + [pid for pid in top if pid not in named and pid not in known]
-    return list(dict.fromkeys(want))[:120], g
+    return [p for p in dict.fromkeys(want) if p][:120], g
 
 
 def reduce_p7(d):
