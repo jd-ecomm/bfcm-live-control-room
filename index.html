@@ -327,7 +327,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
    3. Backstop: with no interaction for 3 minutes, reload anyway every 15 minutes, whatever the stamp says.
    A viewer who is mid-click gets 20 quiet seconds first. */
 (function(){
-  var VER = '6146eb65e560', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
+  var VER = '1fe05f23fcbf', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
   var lastUse = 0, pending = false, loaded = Date.now();
   ['click','keydown','wheel','touchstart','mousemove'].forEach(function(ev){ addEventListener(ev, function(){ lastUse = Date.now(); }, {passive:true}); });
   function quiet(ms){ return document.hidden || Date.now() - lastUse > ms; }
@@ -523,9 +523,9 @@ const gap = totNow - tgtNow;
 
 // ---------- header
 $('hmeta').innerHTML = `<span class="live-dot"><i></i>Live</span><span><b>${dateTxt}</b></span><span>Phase <b>${esc(M.phase||'–')}</b></span><span>Spend plan <b>${esc(SP.day_type||'–')}</b></span><span>Compared with <b>${lyTxt}</b></span>`;
-// Runs start just after the hour and publish about 10 to 15 minutes later; say so, so nobody waits for the stroke of the hour.
-(() => { const nh = NOW + 1, has = nh >= 6 && nh <= 23;   // cloud run every day, 6am to 11pm (13 Nov 2026)
-  $('fresh').innerHTML = `Updated <b>${upd} PT</b>` + (has ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':15$1')}, updates itself` : ' · updates itself hourly, 6am to 11pm'); })();
+// Runs start at :55 and publish just after the hour; say so, so nobody waits for the stroke of the hour.
+(() => { const nh = NOW + 1, has = nh >= 6 && nh <= 23;   // cloud run starts :55, lands about :02 (13 Nov 2026)
+  $('fresh').innerHTML = `Updated <b>${upd} PT</b>` + (has ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · updates itself hourly, 6am to 11pm'); })();
 
 // ---------- pace strip
 $('p-rev').textContent = D$(totNow);
