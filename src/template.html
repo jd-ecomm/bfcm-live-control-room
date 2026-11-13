@@ -526,8 +526,14 @@ const gap = totNow - tgtNow;
 // ---------- header
 $('hmeta').innerHTML = `<span class="live-dot"><i></i>Live</span><span><b>${dateTxt}</b></span><span>Phase <b>${esc(M.phase||'–')}</b></span><span>Spend plan <b>${esc(SP.day_type||'–')}</b></span><span>Compared with <b>${lyTxt}</b></span>`;
 // Runs start at :55 and publish just after the hour; say so, so nobody waits for the stroke of the hour.
-(() => { const nh = NOW + 1, has = nh >= 6 && nh <= 23;   // cloud run starts :55, lands about :02 (13 Nov 2026)
-  $('fresh').innerHTML = `Updated <b>${upd} PT</b>` + (has ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · updates itself hourly, 6am to 11pm'); })();
+// next update from the viewer's clock, not the build: runs start at :55 and land about :02, 6:02am to 11:02pm (13 Nov 2026)
+function freshLine(){
+  const now = new Date(Date.now() - 7*3600e3), m = now.getUTCHours()*60 + now.getUTCMinutes();
+  let nh = now.getUTCMinutes() < 2 ? now.getUTCHours() : now.getUTCHours() + 1;
+  const txt = nh >= 6 && nh <= 23 ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · next update 6:02am, then hourly to 11pm';
+  $('fresh').innerHTML = `Updated <b>${upd} PT</b>` + txt;
+}
+freshLine(); setInterval(freshLine, 60000);
 
 // ---------- pace strip
 $('p-rev').textContent = D$(totNow);
