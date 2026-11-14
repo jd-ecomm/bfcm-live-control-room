@@ -603,12 +603,11 @@ const gap = totNow - tgtNow;
 
 // ---------- header
 $('hmeta').innerHTML = `<span class="live-dot"><i></i>Live</span><span><b>${dateTxt}</b></span><span>Phase <b>${esc(M.phase||'–')}</b></span><span>Spend plan <b>${esc(SP.day_type||'–')}</b></span><span>Compared with <b>${lyTxt}</b></span>`;
-// Runs start at :55 and publish just after the hour; say so, so nobody waits for the stroke of the hour.
-// next update from the viewer's clock, not the build: runs start at :55 and land about :02, 6:02am to 11:02pm (13 Nov 2026)
+// Hourly runs start at :01 so the hour just ended is complete, and land about :05, 6:05am to 11:05pm (Ryan, 14 Nov 2026)
 function freshLine(){
   const now = new Date(Date.now() - 7*3600e3), m = now.getUTCHours()*60 + now.getUTCMinutes();
-  let nh = now.getUTCMinutes() < 2 ? now.getUTCHours() : now.getUTCHours() + 1;
-  let txt = nh >= 6 && nh <= 23 ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · next update 6:02am, then hourly to 11pm';
+  let nh = now.getUTCMinutes() < 5 ? now.getUTCHours() : now.getUTCHours() + 1;
+  let txt = nh >= 6 && nh <= 23 ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':05$1')}, updates itself` : ' · next update 6:05am, then hourly to 11pm';
   const today = now.toISOString().slice(0,10) === M.date, nq = Math.ceil((m+1)/15)*15;
   if(today && inPeak(m) && inPeak(nq, 1)) txt = ` · next about ${qLabel(nq)}`;
   const pk = today && inPeak(m) ? `<span class="peak">Peak mode · every 15 min</span>` : '';
@@ -631,16 +630,13 @@ $('p-pnote').innerHTML = `The rest of the day needs <b>${K$(M.need_rest)}</b> an
   const X = h => (h-pp[0].h)/(Math.max(1,pp[pp.length-1].h-pp[0].h))*292+4, Y = v => 42-(v-mn)/(mx-mn)*38;
   const d = pp.map((p,i)=>(i?'L':'M')+X(p.h).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
   $('p-path').innerHTML = `<line x1="0" x2="300" y1="${Y(M.target_day)}" y2="${Y(M.target_day)}" stroke="#fff" stroke-opacity=".7" stroke-dasharray="4 4" stroke-width="1" vector-effect="non-scaling-stroke"/><path d="${d}" fill="none" stroke="${C.y}" stroke-width="2" vector-effect="non-scaling-stroke"/>`; })();
-// A pull at :45 or later (the hourly :55 run) reports the hour it is finishing, matching "Updated" on the hour (14 Nov 2026).
-// That hour's target and last year are taken to the same minute, so the comparison is fair.
-const LHP = M.now_m >= 45, LH = LHP ? NOW : DONE-1, lhF = LHP ? M.now_m/60 : 1;
-const upTo = h12(NOW).replace(/(am|pm)$/, ':'+String(M.now_m).padStart(2,'0')+'$1');
-$('p-lh-l').textContent = `Last hour · ${h12(LH)} to ${h12(LH+1)}`;
+const LH = DONE-1;
+$('p-lh-l').textContent = `Last full hour · ${h12(LH)} to ${h12(LH+1)}`;
 $('p-lh').textContent = D$(H.total[LH]);
-$('p-lht').textContent = D$(H.target[LH]*lhF); $('p-lhl').textContent = D$(H.ly_total[LH]*lhF);
+$('p-lht').textContent = D$(H.target[LH]); $('p-lhl').textContent = D$(H.ly_total[LH]);
 const lhCvr = H.sessions[LH] ? H.cc[LH]/H.sessions[LH] : 0, lyCvr = H.ly_sessions[LH] ? H.ly_cc[LH]/H.ly_sessions[LH] : 0;
-$('p-lhn').innerHTML = `${LHP ? `To ${upTo} (the last few minutes land in the next update). ` : ''}${Math.round(H.orders[LH])} orders from ${Math.round(H.sessions[LH]).toLocaleString('en-CA')} sessions, conversion ${pct(lhCvr,2)} (${pts(lhCvr,lyCvr)}). Returns posted in the hour: ${D$(-H.returns[LH])}.`;
-const lhr = H.total[LH]/((H.target[LH]*lhF)||1);
+$('p-lhn').innerHTML = `${Math.round(H.orders[LH])} orders from ${Math.round(H.sessions[LH]).toLocaleString('en-CA')} sessions, conversion ${pct(lhCvr,2)} (${pts(lhCvr,lyCvr)}). Returns posted in the hour: ${D$(-H.returns[LH])}.`;
+const lhr = H.total[LH]/(H.target[LH]||1);
 $('p-lhc').innerHTML = lhr>=1 ? '<span class="chip good">Beat the hour target</span>' : lhr>=.85 ? '<span class="chip mid">Close to the hour target</span>' : '<span class="chip bad">Missed the hour target</span>';
 
 // ---------- KPI row (completed hours, today vs LY; grey line in each sparkline is last year)
