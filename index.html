@@ -378,7 +378,7 @@ body.mob-on .hero{display:none}
    3. Backstop: with no interaction for 3 minutes, reload anyway every 15 minutes, whatever the stamp says.
    A viewer who is mid-click gets 20 quiet seconds first. */
 (function(){
-  var VER = '4b0e1c61bd0e', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
+  var VER = '3a0069b741ac', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
   var lastUse = 0, pending = false, loaded = Date.now();
   ['click','keydown','wheel','touchstart','mousemove'].forEach(function(ev){ addEventListener(ev, function(){ lastUse = Date.now(); }, {passive:true}); });
   function quiet(ms){ return document.hidden || Date.now() - lastUse > ms; }
@@ -679,7 +679,7 @@ const notesPlug = { id:'notes', afterDatasetsDraw(ch, a, o){ if(!o.list) return;
   const mx = o.compact ? 4 : 3, band = noteBand(o.list, fs, mx); ch.$pills = [];
   const rows = []; o.list.forEach(n => { const px = x.getPixelForValue(n.h); if(px<ca.left||px>ca.right) return; const col = n.type==='send'?C.t:n.type==='good'?C.y:C.a;
     const label = o.compact ? noteMini(n) : noteText(n), w = c.measureText(label).width + fs*1.4, hgt = fs*2, left = px > ca.right - w ? px - w : px;
-    let r = 0; while(rows[r]!=null && rows[r] > left - 4 && r < mx-1) r++; rows[r] = left + w;
+    let r = 0; while(rows[r]!=null && rows[r] > left - (o.compact?4:6) && r < mx-1) r++; rows[r] = left + w;
     const y = ca.top - band + 4 + r*(hgt+5);
     ch.$pills.push({x:left, y, w, h:hgt, k:noteKey(n)});
     c.strokeStyle = col; c.globalAlpha=.45; c.setLineDash([3,3]); c.lineWidth=1; c.beginPath(); c.moveTo(px, y+hgt); c.lineTo(px, ca.bottom); c.stroke(); c.setLineDash([]); c.globalAlpha=1;
