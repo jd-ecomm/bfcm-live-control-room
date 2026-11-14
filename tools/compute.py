@@ -17,7 +17,10 @@ from zoneinfo import ZoneInfo
 from pathlib import Path
 
 D = Path(__file__).resolve().parent.parent / 'data'
-TZ = ZoneInfo('America/Vancouver')
+# One fixed clock for today AND last year (Ryan, 14 Nov 2026). BC is UTC-7 all year since 1 Nov 2026, but last year's
+# November was PST (UTC-8). Converting last year with UTC-7 lines both days up on the same Eastern time (10am ET launch =
+# 7am PST last year = 8am PT now), so last year's spikes, the hourly target shape and the forecast land in the right hour.
+TZ = dt.timezone(dt.timedelta(hours=-7))
 J = lambda n: json.load(open(D / n))
 num = lambda x: float(x) if x not in (None, '') else 0.0
 
@@ -106,14 +109,20 @@ def pred_at(h):           # prediction made with hours 0..h-1 complete
     if h < 4: return None
     sh = shape_c[h - 1]
     return tot_c[h - 1] / sh if sh > .03 else None
-pred = pred_at(DONE) or target_day
+# headline forecast also counts the hour in progress, so it can never sit below what is already banked (14 Nov 2026)
+def shape_at(x): i = int(x); return (shape_c[i - 1] if i else 0) + (shape_c[i] - (shape_c[i - 1] if i else 0)) * (x - i)
+tot_now = sum(S['total_sales'][:NOW + 1]); sh_now = shape_at(NOW + MIN / 60)
+pred = max(tot_now / sh_now if sh_now > .03 and NOW >= 4 else (pred_at(DONE) or target_day), tot_now)
 pred_path = [{'h': h, 'v': round(pred_at(h), 2)} for h in range(4, DONE + 1) if pred_at(h)]
+if pred_path: pred_path[-1]['v'] = round(pred, 2)   # last point = the headline forecast
 need_rest = max(0, target_day - tot_c[NOW]) / max(1, 24 - NOW - MIN / 60)
 
 # ---------- spend
 g = J('google.json'); m = J('meta.json'); plan = J('spend_plan.json').get(today.isoformat(), {})
 pad = lambda a: (list(a) + [0] * 24)[:24]
 G, Mt, LG, LM = pad(g['today']), pad(m['today']), pad(g['ly']), pad(m['ly'])
+# Google and Meta report last year in PST wall-clock hours: move them one hour later to match (see TZ above)
+LG, LM = [LG[0]] + LG[:23], [LM[0]] + LM[:23]
 fixed_day = (plan.get('shop') or 0) + (plan.get('pinterest') or 0)
 budget_day = plan.get('working') or plan.get('base') or 0
 var_budget = max(0, budget_day - fixed_day)

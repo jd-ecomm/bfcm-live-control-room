@@ -60,6 +60,13 @@ Same ShopifyQL as tools/pull_today.js, no work PC or browser needed. Tested agai
 4. `python3 tools/connector_pull.py assemble --today F [--p7 F] [--lyfill F] --products F --out pull.json`, then merge_pull.py, compute.py, build.py as usual.
 Thumbnails are CDN links (the cloud cannot fetch cdn.shopify.com to embed them).
 
+## Last year on the same clock (14 Nov 2026)
+compute.py converts today AND last year with a fixed UTC-7 (TZ), not America/Vancouver. Last November was PST (UTC-8), so
+wall-clock hours put last year's 10am ET Early Access launch at 7am and today's at 8am: the 7am hourly target was $189K, the
+forecast divided by a share of the day that had not happened yet, and showed less than was already banked. Now both days line
+up on Eastern time. Google and Meta last-year hourly spend (PST wall clock) are shifted one hour later to match. The headline
+forecast counts the hour in progress (shape interpolated to the minute) and never drops below sales so far.
+
 ## Peak Mode: Shopify every 15 minutes (Ryan, 14 Nov 2026)
 - Setting: data/peak.json `windows` = [{date, from, to}] in Vancouver time. Inside a window the page shows a yellow "Peak mode ·
   every 15 min" tag, the "Updated" time rounds to the nearest quarter hour, and "next about" counts in quarters.
