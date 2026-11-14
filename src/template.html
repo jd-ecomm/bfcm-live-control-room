@@ -234,6 +234,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
 .sbar .clk span{display:block;font-family:var(--body);font-size:calc(var(--u)*.75);font-weight:700;letter-spacing:.1em;margin-top:calc(var(--u)*.35);opacity:.75}
 .sbar svg{width:calc(var(--u)*3.6);height:calc(var(--u)*3.6)}
 .sbar::after{content:"";position:absolute;right:calc(var(--u)*5.6);top:-30%;bottom:-30%;width:calc(var(--u)*.12);background:#000;transform:rotate(10deg)}
+.peak{display:inline-block;background:var(--yellow);color:#000;font-weight:800;font-size:10px;letter-spacing:.1em;text-transform:uppercase;border-radius:99px;padding:3px 9px;margin-right:10px;vertical-align:1px}
 .tick{display:flex;align-items:center;gap:calc(var(--u)*.8);background:#0a0a0a;border:1px solid #2b2610;border-radius:calc(var(--u)*.5);padding:calc(var(--u)*.3) calc(var(--u)*.6);overflow:hidden}
 .tick .tag{flex:none;display:flex;align-items:center;gap:calc(var(--u)*.35);background:var(--yellow);color:#000;font-weight:800;font-size:calc(var(--u)*.55);letter-spacing:.12em;text-transform:uppercase;padding:calc(var(--u)*.22) calc(var(--u)*.55);border-radius:99px;position:relative;z-index:1}
 .tick .tag i{width:calc(var(--u)*.4);height:calc(var(--u)*.4);border-radius:50%;background:#000;animation:blink 1.6s infinite}
@@ -589,7 +590,14 @@ const dateTxt = new Date(M.date+'T12:00:00').toLocaleDateString('en-CA',{weekday
 const lyTxt = new Date(M.ly_date+'T12:00:00').toLocaleDateString('en-CA',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
 const upd = M.pulled.slice(11);
 // headline update time on the hour (Ryan, 13 Nov 2026): a pull from :45 on counts as the next hour's update
-const updH = (() => { const [hh, mm] = upd.split(':').map(Number); const h = mm >= 45 ? (hh + 1) % 24 : hh; return h12(h).replace(/(am|pm)$/, ':00$1'); })();
+// Peak Mode (Ryan, 14 Nov 2026): inside a data/peak.json window Shopify refreshes every 15 minutes, so the time rounds to the nearest quarter
+const PEAK = M.peak || [], hm = m => String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+const inPeak = (mins, grace=0) => PEAK.some(w => hm(mins) >= w.from && hm(mins - grace) < w.to);
+const peakNow = () => { const n = new Date(Date.now() - 7*3600e3); return n.toISOString().slice(0,10) === M.date && inPeak(n.getUTCHours()*60 + n.getUTCMinutes()); };
+const qLabel = mins => { const h = Math.floor(mins/60)%24, q = mins%60; return h12(h).replace(/(am|pm)$/, ':'+String(q).padStart(2,'0')+'$1'); };
+const updH = (() => { const [hh, mm] = upd.split(':').map(Number), t = hh*60 + mm;
+  if(inPeak(t, 10)) return qLabel(Math.round(t/15)*15);
+  const h = mm >= 45 ? (hh + 1) % 24 : hh; return h12(h).replace(/(am|pm)$/, ':00$1'); })();
 const totNow = sum(H.total), tgtNow = sum(H.target, DONE) + H.target[NOW]*(M.now_m/60), lyNow = sum(H.ly_total, DONE) + H.ly_total[NOW]*(M.now_m/60);
 const gap = totNow - tgtNow;
 
@@ -600,8 +608,11 @@ $('hmeta').innerHTML = `<span class="live-dot"><i></i>Live</span><span><b>${date
 function freshLine(){
   const now = new Date(Date.now() - 7*3600e3), m = now.getUTCHours()*60 + now.getUTCMinutes();
   let nh = now.getUTCMinutes() < 2 ? now.getUTCHours() : now.getUTCHours() + 1;
-  const txt = nh >= 6 && nh <= 23 ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · next update 6:02am, then hourly to 11pm';
-  $('fresh').innerHTML = `Updated <b>${updH} PT</b>` + txt;
+  let txt = nh >= 6 && nh <= 23 ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · next update 6:02am, then hourly to 11pm';
+  const today = now.toISOString().slice(0,10) === M.date, nq = Math.ceil((m+1)/15)*15;
+  if(today && inPeak(m) && inPeak(nq, 1)) txt = ` · next about ${qLabel(nq)}`;
+  const pk = today && inPeak(m) ? `<span class="peak">Peak mode · every 15 min</span>` : '';
+  $('fresh').innerHTML = pk + `Updated <b>${updH} PT</b>` + txt;
 }
 freshLine(); setInterval(freshLine, 60000);
 
@@ -1080,7 +1091,7 @@ $('foot').innerHTML = `<b>Sources.</b> Shopify Analytics (ShopifyQL), pulled ${M
 
 // ---------- screen view
 let sChart, srm='cum', tickT, rot;
-function clock(){ $('s-clk').innerHTML = new Date().toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit',timeZone:'America/Vancouver'}).replace(/\s?([ap])\.?\s?m\.?/i,(m,a)=>' '+a.toUpperCase()+'M') + `<span>Updated ${updH} PT</span>`; }
+function clock(){ $('s-clk').innerHTML = new Date().toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit',timeZone:'America/Vancouver'}).replace(/\s?([ap])\.?\s?m\.?/i,(m,a)=>' '+a.toUpperCase()+'M') + `<span>Updated ${updH} PT${peakNow()?' · Peak mode, every 15 min':''}</span>`; }
 function screen(){
   $('s-date').innerHTML = `${dateTxt}<span>${esc(M.phase||'')} · vs ${lyTxt}</span>`; clock();
   const strip = n => { n.removeAttribute('data-k'); n.removeAttribute('id'); n.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id')); n.removeAttribute('role'); n.removeAttribute('tabindex'); return n; };
@@ -1130,7 +1141,7 @@ function mobile(){
   $('m-mq').innerHTML = items + items; $('m-mq').style.setProperty('--mqd', Math.max(30, (M.ticker||[]).reduce((a,t)=>a+t.txt.length,0)*.22)+'s');
   drawMobChart();
 }
-function mClock(){ const el = document.getElementById('m-clk'); if(!el) return; el.innerHTML = new Date().toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit',timeZone:'America/Vancouver'}).replace(/\s?([ap])\.?\s?m\.?/i,(m,a)=>' '+a.toUpperCase()+'M') + `<span>Updated ${updH}</span>`; }
+function mClock(){ const el = document.getElementById('m-clk'); if(!el) return; el.innerHTML = new Date().toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit',timeZone:'America/Vancouver'}).replace(/\s?([ap])\.?\s?m\.?/i,(m,a)=>' '+a.toUpperCase()+'M') + `<span>Updated ${updH}${peakNow()?' · every 15 min':''}</span>`; }
 setInterval(() => { if(!$('mobile').hidden) mClock(); }, 20000);
 function drawMobChart(){ if(mChart) mChart.destroy(); mChart = revChart($('cMob'), mrm, false, $('mpulse'), $('mpulseT'), true); window.mChartRef = mChart;
   document.querySelectorAll('[data-mrm]').forEach(x=>x.classList.toggle('on', x.dataset.mrm===mrm)); $('m-ct').textContent = mrm==='cum' ? 'Revenue pacing' : 'Revenue per hour'; }

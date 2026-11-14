@@ -1,0 +1,6 @@
+{
+  "note": "Peak Mode (Ryan, 14 Nov 2026): Shopify updates every 15 minutes (:15, :30, :45, :00) inside these windows, Vancouver time. The hourly :55 run gives :00; the quarter-hour runs (:11, :26, :41) give :15, :30, :45 and refresh Shopify only. Add a window per day you want it; the quarter-hour tasks exit straight away outside a window.",
+  "windows": [
+    {"date": "2026-11-14", "from": "10:00", "to": "17:00"}
+  ]
+}

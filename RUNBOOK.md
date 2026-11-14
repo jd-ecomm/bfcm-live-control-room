@@ -60,6 +60,16 @@ Same ShopifyQL as tools/pull_today.js, no work PC or browser needed. Tested agai
 4. `python3 tools/connector_pull.py assemble --today F [--p7 F] [--lyfill F] --products F --out pull.json`, then merge_pull.py, compute.py, build.py as usual.
 Thumbnails are CDN links (the cloud cannot fetch cdn.shopify.com to embed them).
 
+## Peak Mode: Shopify every 15 minutes (Ryan, 14 Nov 2026)
+- Setting: data/peak.json `windows` = [{date, from, to}] in Vancouver time. Inside a window the page shows a yellow "Peak mode ·
+  every 15 min" tag, the "Updated" time rounds to the nearest quarter hour, and "next about" counts in quarters.
+- Runs: the hourly :55 task gives :00. Three quarter-hour tasks start at :11, :26 and :41 (landing about :15, :30, :45). Each
+  runs `python3 tools/connector_pull.py peak` first and exits at once when it says active false. They refresh Shopify only
+  (today pack + products, plus p7 / lyFill if plan asks); spend, Meta, snapshot, markers and PRM files stay from the last :55 run.
+- Turning it on for a day: add the window to data/peak.json (commit, push) and set the quarter-hour tasks' cron to that date
+  and those hours, e.g. `CRON_TZ=America/Vancouver 11 10-16 14 11 *` for 14 Nov 10am to 5pm (last quarter run 4:41 lands 4:45,
+  the 4:55 hourly run gives 5:00). Trigger ids are in the Control Bot registry.
+
 ## New vs returning (Ryan, 13 Nov 2026)
 - Pack `tdNR3` (today) and cache `lyNR3` (shopify_raw3.json): `FROM sales SHOW customers, orders, gross_sales, discounts,
   total_sales GROUP BY hour, new_or_returning_customer`. lyNR3 was filled once for 13 Nov 2025 to 4 Jan 2026 (2,543 rows),

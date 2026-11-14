@@ -75,6 +75,17 @@ def has_day(pack, day):
     return False
 
 
+def peak(at=None):
+    """Peak Mode window covering NOW (or `at`), from data/peak.json; None outside every window."""
+    at = at or NOW
+    try:
+        ws = json.loads((Path(__file__).resolve().parent.parent / 'data' / 'peak.json').read_text()).get('windows', [])
+    except Exception:
+        return None
+    hm = at.strftime('%H:%M')
+    return next((w for w in ws if w.get('date') == str(at.date()) and w['from'] <= hm < w['to']), None)
+
+
 def plan():
     r2, r3, p7 = J('shopify_raw2.json'), J('shopify_raw3.json'), J('p7.json')
     return {
@@ -159,6 +170,9 @@ def main():
     P = packs()
     if a.cmd == 'plan':
         print(json.dumps(plan()))
+    elif a.cmd == 'peak':   # Peak Mode: {"active": bool, "window": {...}} for the quarter-hour runs
+        w = peak()
+        print(json.dumps({'active': bool(w), 'now': NOW.strftime('%Y-%m-%d %H:%M'), 'window': w}))
     elif a.cmd == 'query' and a.which in ('today', 'lyfill', 'p7'):
         pad = None if a.which == 'p7' else P['today']['pH']   # p7 and lyfill are big already; pad today so it spills
         print(json.dumps(gql(P[a.which], pad=pad if a.which == 'today' else None)))

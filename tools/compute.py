@@ -366,6 +366,7 @@ R2 = lambda a: [round(x, 2) for x in a]
 model = {
     'date': today.isoformat(), 'ly_date': ly_day.isoformat(), 'lw_date': lw_day.isoformat(),
     'pulled': pulled.strftime('%Y-%m-%d %H:%M'), 'now_h': NOW, 'now_m': MIN, 'done_h': DONE,
+    'peak': [w for w in (json.loads((D / 'peak.json').read_text()).get('windows', []) if (D / 'peak.json').exists() else []) if w.get('date') == today.isoformat()],
     'phase': next((x['phase'] for x in prm['day_shape'] if x['date'] == today.isoformat()), ''),
     'ratio': round(ratio, 4), 'target_net': round(target_net, 2), 'target_day': round(target_day, 2),
     'ly_total_day': round(sum(LY['total']), 2),
