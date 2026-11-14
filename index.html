@@ -320,36 +320,52 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tlist{grid-template-columns:minmax(0,1fr)}.fsteps{grid-template-columns:repeat(2,minmax(0,1fr))}.fst:nth-child(3){padding-left:0;border-left:0}.fst .pc{font-size:34px}.ful,.agekey{grid-template-columns:repeat(2,minmax(0,1fr))}.fl{grid-template-columns:minmax(0,1fr)}
   .pc .big{font-size:54px}.kpi .v{font-size:34px}.cbox{height:280px}.tabs .fresh{margin-left:0;width:100%}.seg+.seg{margin-left:0}
   #screen{height:auto;overflow:visible}.scr{height:auto}.smain,.sbot{grid-template-columns:minmax(0,1fr);height:auto}.schart{min-height:300px}}
-/* ---------- mobile view (Ryan, 13 Nov 2026: optimised for an iPhone) */
-#mobile .mw{max-width:480px;margin:0 auto;padding:12px max(14px,env(safe-area-inset-right,0px)) 32px max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
-.m-fresh{font-size:12px;color:var(--fg2);text-align:center}
-.m-fresh b{color:var(--fg)}
-.m-stack{display:flex;flex-direction:column;gap:12px}
-#mobile .card{padding:16px;min-width:0}
-#mobile .pc .big{font-size:52px}
-#mobile .pc .meta{flex-wrap:wrap;gap:6px 14px;font-size:12px}
-#mobile .pc .say{font-size:13px}
-.m-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.m-kpis .kpi{padding:12px;cursor:default}
-.m-kpis .kpi .v{font-size:34px;margin-top:6px}
-.m-kpis .kpi .d{font-size:11px}
-.m-kpis .kpi svg{height:26px;margin-top:8px}
+/* ---------- mobile view: the Dashboard view laid out for an iPhone (Ryan, 13 Nov 2026) */
+#mobile .mw{max-width:480px;margin:0 auto;padding:10px max(12px,env(safe-area-inset-right,0px)) 28px max(12px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:10px}
+.m-bar{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;background:var(--yellow);color:#000;border-radius:12px;padding:10px 12px;position:relative;overflow:hidden}
+.m-bar h1{margin:0;font-size:22px;line-height:.95}
+.m-dt{font-size:11px;font-weight:700;margin-top:4px;line-height:1.25}
+.m-dt span{display:block;font-weight:500;opacity:.7}
+.m-clk{font-family:var(--display);font-size:30px;line-height:.85;text-align:right}
+.m-clk span{display:block;font-family:var(--body);font-size:9px;font-weight:700;letter-spacing:.08em;margin-top:4px;opacity:.75;text-transform:uppercase}
+.m-bar svg{width:34px;height:34px}
+#mobile .m-tick{border-radius:10px;font-size:12px;padding:6px 8px;gap:8px;height:auto}
+#mobile .m-tick .tag{font-size:10px;padding:3px 9px;gap:5px}
+#mobile .m-tick .tag i{width:6px;height:6px}
+#mobile .m-tick .mq span.it{font-size:12px;gap:6px;padding-right:22px}
+#mobile .m-tick .mq span.it b{font-size:9px}
+#mobile .m-tick .mq span.it img{height:16px;width:16px;border-radius:3px}
+#mobile .m-tick .mq span.it::after{font-size:8px;margin-left:22px}
+.m-pace{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.m-pace > .card:first-child{grid-column:1 / -1}
+#mobile .m-pace .card{padding:12px;min-width:0}
+#mobile .m-pace .lbl{font-size:10px}
+#mobile .m-pace .big{font-size:30px;margin-top:6px}
+#mobile .m-pace > .card:first-child .big{font-size:46px}
+#mobile .m-pace .meta{flex-wrap:wrap;gap:4px 10px;font-size:11px;margin-top:8px}
+#mobile .m-pace .say{font-size:12px;margin-top:8px}
+#mobile .m-pace > .card:not(:first-child) .say,#mobile .m-pace > .card:not(:first-child) .mini{display:none}
+#mobile .m-pace > .card:not(:first-child) .meta{flex-direction:column;gap:2px}
+#mobile .m-pace .track{margin-top:10px}
+#mobile .m-pace [id] {}
+.m-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.m-kpis .kpi{padding:10px 12px;cursor:default}
+.m-kpis .kpi .lbl{font-size:9.5px}
+.m-kpis .kpi .v{font-size:28px;margin-top:4px}
+.m-kpis .kpi .d{font-size:10.5px;margin-top:4px}
+.m-kpis .kpi svg{height:20px;margin-top:6px}
 .m-kpis .kpi .hint{display:none}
 .m-kpis .kpi:last-child:nth-child(odd){grid-column:1 / -1}
-.m-ch-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-.m-ch-h h3{font-size:20px;margin:0}
-.m-cbox{position:relative;height:240px;margin-top:10px}
-#mobile .legend{font-size:11px;gap:6px 12px;flex-wrap:wrap}
-.m-h{font-size:22px;margin:10px 0 0}
-#mobile #m-spend .dsp.num{font-size:38px!important}
-.m-top{display:flex;flex-direction:column;gap:8px}
-.m-top > *{min-width:0}
-.m-feed{display:flex;flex-direction:column;gap:8px}
-.m-feed .it{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card,#141414);font-size:13px;line-height:1.35}
-.m-feed .it b{flex:none;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);min-width:64px}
-.m-feed .it img{width:36px;height:36px;object-fit:contain;border-radius:6px;background:#fff;flex:none}
-.m-feed .it.good b{color:var(--teal)} .m-feed .it.bad b{color:var(--alert)} .m-feed .it.hot b{color:var(--yellow)}
-.m-full{align-self:center;margin-top:6px}
+#mobile .m-chart{padding:12px}
+.m-ch-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.m-ch-h h2{font-size:20px;margin:0}
+.m-lg{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:10.5px;color:var(--fg2);margin-top:8px}
+.m-lg span{display:inline-flex;align-items:center;gap:5px}
+.m-lg i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.m-lg i.dash{background:repeating-linear-gradient(90deg,#fff 0 4px,transparent 4px 7px)}
+.m-cbox{position:relative;height:clamp(300px,52vh,420px);margin-top:6px}
+#mobile .pulse b{font-size:11px}
+.m-full{align-self:center;margin-top:4px}
 body.mob-on .hero{display:none}
 @media(max-width:600px){.tabs .fresh{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -362,7 +378,7 @@ body.mob-on .hero{display:none}
    3. Backstop: with no interaction for 3 minutes, reload anyway every 15 minutes, whatever the stamp says.
    A viewer who is mid-click gets 20 quiet seconds first. */
 (function(){
-  var VER = '528422f0fbc1', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
+  var VER = '60fba71a1242', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
   var lastUse = 0, pending = false, loaded = Date.now();
   ['click','keydown','wheel','touchstart','mousemove'].forEach(function(ev){ addEventListener(ev, function(){ lastUse = Date.now(); }, {passive:true}); });
   function quiet(ms){ return document.hidden || Date.now() - lastUse > ms; }
@@ -512,20 +528,19 @@ body.mob-on .hero{display:none}
 
 <main id="mobile" hidden>
   <div class="mw">
-    <div class="m-fresh" id="m-fresh"></div>
-    <div class="m-stack" id="m-pace"></div>
+    <div class="m-bar">
+      <div><h1 class="dsp">Black Friday Control Room</h1><div class="m-dt" id="m-date"></div></div>
+      <div class="m-clk" id="m-clk"></div>
+      <svg viewBox="0 0 144 144" aria-hidden="true"><use href="#rd"></use></svg>
+    </div>
+    <div class="tick m-tick"><div class="tag"><i></i>Live</div><div class="mqw"><div class="mq" id="m-mq"></div></div></div>
+    <div class="m-pace" id="m-pace"></div>
     <div class="m-kpis" id="m-kpis"></div>
     <div class="card m-chart">
-      <div class="m-ch-h"><h3 class="dsp" id="m-ct">Revenue pacing</h3><div class="seg"><button class="pill sm on" data-mrm="cum">Total</button><button class="pill sm" data-mrm="hr">Per hour</button></div></div>
+      <div class="m-ch-h"><h2 class="dsp" id="m-ct">Revenue pacing</h2><div class="seg"><button class="pill sm on" data-mrm="cum">Total</button><button class="pill sm" data-mrm="hr">Per hour</button></div></div>
+      <div class="m-lg"><span><i style="background:var(--yellow)"></i>Today</span><span><i class="dash"></i>Target</span><span><i style="background:var(--fg3)"></i>LY</span><span><i style="background:var(--teal)"></i>Send</span><span><i style="background:var(--alert)"></i>Alert</span></div>
       <div class="m-cbox"><canvas id="cMob" aria-label="Total revenue by hour against target and last year"></canvas><div class="pulse" id="mpulse"><b id="mpulseT"></b></div></div>
-      <div class="legend"><span><i style="background:var(--yellow);height:4px"></i>Today</span><span><i class="dash"></i>Target</span><span><i style="background:var(--fg3)"></i>Last year</span></div>
     </div>
-    <h2 class="dsp m-h">Spend and MER</h2>
-    <div class="m-stack" id="m-spend"></div>
-    <h2 class="dsp m-h">Top products</h2>
-    <div class="tlist m-top" id="m-top"></div>
-    <h2 class="dsp m-h">What's happening</h2>
-    <div class="m-feed" id="m-feed"></div>
     <button class="pill m-full" data-view="live">Open the full Live view</button>
   </div>
 </main>
@@ -588,7 +603,6 @@ function freshLine(){
   let nh = now.getUTCMinutes() < 2 ? now.getUTCHours() : now.getUTCHours() + 1;
   const txt = nh >= 6 && nh <= 23 ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · next update 6:02am, then hourly to 11pm';
   $('fresh').innerHTML = `Updated <b>${updH} PT</b>` + txt;
-  const mf = document.getElementById('m-fresh'); if(mf) mf.innerHTML = `Updated <b>${updH} PT</b>` + txt;
 }
 freshLine(); setInterval(freshLine, 60000);
 
@@ -655,15 +669,17 @@ let COLL = new Set(); try { COLL = new Set(JSON.parse(localStorage.getItem(NOTE_
 const noteShort = n => n.type==='send' ? (n.label.split(':')[0]||'Send') : n.type==='good' ? 'Spike' : 'Alert';
 const noteKey = n => M.date+'|'+n.label;
 const noteText = n => COLL.has(noteKey(n)) ? noteShort(n)+'  +' : n.label+'  –';
-const noteBand = (list, fs) => list.length ? Math.min(list.length, 3)*(fs*2+5) + 10 : 4;
+const noteBand = (list, fs, mx=3) => list.length ? Math.min(list.length, mx)*(fs*2+5) + 10 : 4;
+// mobile: short labels always, e.g. "Email", "Spike 9am", "Returns hit" (Ryan, 13 Nov 2026)
+const noteMini = n => { const t = n.type==='send' ? (n.label.split(':')[0]||'Send').split(/[ (]/)[0] : n.label.split(':')[0]; return t.length>12 ? t.slice(0,11)+'…' : t; };
 function toggleNote(ch, e){ const hit = (ch.$pills||[]).find(q => e.x>=q.x && e.x<=q.x+q.w && e.y>=q.y && e.y<=q.y+q.h); if(!hit) return false;
   COLL.has(hit.k) ? COLL.delete(hit.k) : COLL.add(hit.k); try { localStorage.setItem(NOTE_KEY, JSON.stringify([...COLL])); } catch(err) {}
-  [window.cRevRef, window.sChartRef].forEach(c => c && c.draw()); return true; }
+  [window.cRevRef, window.sChartRef, window.mChartRef].forEach(c => c && c.draw()); return true; }
 const notesPlug = { id:'notes', afterDatasetsDraw(ch, a, o){ if(!o.list) return; const {ctx:c, chartArea:ca, scales:{x}} = ch; c.save(); const fs = o.size||10.5; c.font = `700 ${fs}px 'Inter Tight', Arial, sans-serif`;
-  const band = noteBand(o.list, fs); ch.$pills = [];
+  const mx = o.compact ? 4 : 3, band = noteBand(o.list, fs, mx); ch.$pills = [];
   const rows = []; o.list.forEach(n => { const px = x.getPixelForValue(n.h); if(px<ca.left||px>ca.right) return; const col = n.type==='send'?C.t:n.type==='good'?C.y:C.a;
-    const label = noteText(n), w = c.measureText(label).width + fs*1.4, hgt = fs*2, left = px > ca.right - w ? px - w : px;
-    let r = 0; while(rows[r]!=null && rows[r] > left - 6 && r < 2) r++; rows[r] = left + w;
+    const label = o.compact ? noteMini(n) : noteText(n), w = c.measureText(label).width + fs*1.4, hgt = fs*2, left = px > ca.right - w ? px - w : px;
+    let r = 0; while(rows[r]!=null && rows[r] > left - 4 && r < mx-1) r++; rows[r] = left + w;
     const y = ca.top - band + 4 + r*(hgt+5);
     ch.$pills.push({x:left, y, w, h:hgt, k:noteKey(n)});
     c.strokeStyle = col; c.globalAlpha=.45; c.setLineDash([3,3]); c.lineWidth=1; c.beginPath(); c.moveTo(px, y+hgt); c.lineTo(px, ca.bottom); c.stroke(); c.setLineDash([]); c.globalAlpha=1;
@@ -698,7 +714,7 @@ function placePulse(ch, el, txtEl, mode){ const meta = ch.getDatasetMeta(0); con
   const raw = ch.data.datasets[0].data.slice(-1)[0]; txtEl.textContent = mode==='cum' ? `${K$(raw.y)} at ${upd}` : `${K$(raw.y)} an hour, pace so far`;
   const right = pt.x > ch.chartArea.right - 170; txtEl.style.left = right ? 'auto' : '18px'; txtEl.style.right = right ? '18px' : 'auto'; }
 const FS = k => { const u = Math.min(innerWidth/100, innerHeight*1.7/100); return Math.max(10, Math.round(u*k)); };
-function revChart(canvas, mode, big, pulseEl, pulseT, lite){   // lite: no note pills (mobile view)
+function revChart(canvas, mode, big, pulseEl, pulseT, lite){   // lite: mobile view (short note labels, fewer hour ticks)
   // notes live outside the plot area, where Chart.js ignores clicks, so listen on the canvas itself (once per canvas)
   if(!canvas.$noteEv){ canvas.$noteEv = true;
     const at = ev => { const r = canvas.getBoundingClientRect(); return {x:ev.clientX-r.left, y:ev.clientY-r.top}; };
@@ -708,10 +724,10 @@ function revChart(canvas, mode, big, pulseEl, pulseT, lite){   // lite: no note 
         const h = Math.max(0, Math.min(NOW, Math.floor(ch.scales.x.getValueForPixel(e.x)))); openHour(h); } });
     canvas.addEventListener('mousemove', ev => { const ch = Chart.getChart(canvas); if(!ch) return; const e = at(ev); canvas.style.cursor = (ch.$pills||[]).some(q => e.x>=q.x && e.x<=q.x+q.w && e.y>=q.y && e.y<=q.y+q.h) ? 'pointer' : 'default'; }); }
   return new Chart(canvas, {type:'line', data:{datasets:revDatasets(mode, big)}, options:{responsive:true, maintainAspectRatio:false, parsing:false, animation:{duration:big?0:600},
-    interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:lite?8:noteBand(M.notes, big?FS(.62):10.5), right:big?20:12}},
-    scales:{x:xS(big?FS(.78):11), y:Object.assign(yS(big?FS(.78):11), {grace:'8%'})},
+    interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:noteBand(M.notes, lite?9.5:big?FS(.62):10.5, lite?4:3), right:big?20:lite?6:12}},
+    scales:{x:(()=>{ const x_ = xS(big?FS(.78):lite?10:11); if(lite){ x_.ticks.stepSize = 4; x_.ticks.maxRotation = 0; x_.ticks.padding = 4; } return x_; })(), y:Object.assign(yS(big?FS(.78):lite?10:11), {grace:'8%'}, lite?{ticks:{callback:v=>K$(v), padding:4, font:{size:10}, maxTicksLimit:6}}:{})},
 
-    plugins:{notes:{list:lite?null:M.notes, size:big?FS(.62):10.5}, nowshade:{x:NOWX}, tooltip:{enabled:!big, callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum' ? 'By '+(x%1? upd : hl(Math.round(x))) : h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)+(it.raw.proj?' (pace, hour in progress)':'')}}}},
+    plugins:{notes:{list:M.notes, size:lite?9.5:big?FS(.62):10.5, compact:!!lite}, nowshade:{x:NOWX}, tooltip:{enabled:!big, callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum' ? 'By '+(x%1? upd : hl(Math.round(x))) : h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)+(it.raw.proj?' (pace, hour in progress)':'')}}}},
     plugins:[{id:'pulse', afterRender: c => placePulse(c, pulseEl, pulseT, mode)}]});
 }
 let rm='cum', cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); window.cRevRef = cRev;
@@ -1108,15 +1124,16 @@ function view(v){ const s = v==='screen', m = v==='mobile';
 let mChart, mrm = 'cum';
 function mobile(){
   const strip = n => { n.removeAttribute('data-k'); n.removeAttribute('id'); n.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id')); n.removeAttribute('role'); n.removeAttribute('tabindex'); n.style.cursor = 'default'; n.classList.remove('on'); return n; };
-  $('m-fresh').innerHTML = $('fresh').innerHTML;
+  $('m-date').innerHTML = `${dateTxt}<span>${esc(M.phase||'')} · vs ${lyTxt}</span>`; mClock();
   $('m-pace').innerHTML = ''; document.querySelectorAll('#live .grid3 > .card').forEach(c => $('m-pace').appendChild(strip(c.cloneNode(true))));
   $('m-kpis').innerHTML = ''; document.querySelectorAll('#kpis > .kpi').forEach(c => $('m-kpis').appendChild(strip(c.cloneNode(true))));
-  $('m-spend').innerHTML = ''; document.querySelectorAll('#live .spend .side > .card').forEach(c => $('m-spend').appendChild(strip(c.cloneNode(true))));
-  $('m-top').innerHTML = ''; [...document.querySelectorAll('#top > *')].slice(0, 5).forEach(c => $('m-top').appendChild(strip(c.cloneNode(true))));
-  $('m-feed').innerHTML = (M.ticker||[]).map(t=>`<div class="it ${t.tone}"><b>${esc(t.k)}</b>${t.img?`<img src="${t.img}" alt="">`:''}<span>${esc(t.txt)}</span></div>`).join('') || '<div class="it">Nothing new this hour.</div>';
+  const items = (M.ticker||[]).map(t=>`<span class="it ${t.tone}"><b>${esc(t.k)}</b>${t.img?`<img src="${t.img}" alt="">`:''}${esc(t.txt)}</span>`).join('');
+  $('m-mq').innerHTML = items + items; $('m-mq').style.setProperty('--mqd', Math.max(30, (M.ticker||[]).reduce((a,t)=>a+t.txt.length,0)*.22)+'s');
   drawMobChart();
 }
-function drawMobChart(){ if(mChart) mChart.destroy(); mChart = revChart($('cMob'), mrm, false, $('mpulse'), $('mpulseT'), true);
+function mClock(){ const el = document.getElementById('m-clk'); if(!el) return; el.innerHTML = new Date().toLocaleTimeString('en-CA',{hour:'numeric',minute:'2-digit',timeZone:'America/Vancouver'}).replace(/\s?([ap])\.?\s?m\.?/i,(m,a)=>' '+a.toUpperCase()+'M') + `<span>Updated ${updH}</span>`; }
+setInterval(() => { if(!$('mobile').hidden) mClock(); }, 20000);
+function drawMobChart(){ if(mChart) mChart.destroy(); mChart = revChart($('cMob'), mrm, false, $('mpulse'), $('mpulseT'), true); window.mChartRef = mChart;
   document.querySelectorAll('[data-mrm]').forEach(x=>x.classList.toggle('on', x.dataset.mrm===mrm)); $('m-ct').textContent = mrm==='cum' ? 'Revenue pacing' : 'Revenue per hour'; }
 document.querySelectorAll('[data-mrm]').forEach(b => b.onclick = () => { mrm = b.dataset.mrm; drawMobChart(); });
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { location.hash = b.dataset.view; });

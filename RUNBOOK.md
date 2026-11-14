@@ -71,4 +71,4 @@ Thumbnails are CDN links (the cloud cannot fetch cdn.shopify.com to embed them).
 
 
 ## Mobile view (Ryan, 13 Nov 2026)
-Third tab, #mobile. Built in the page from the Live view cards (pace cards, KPI cards, spend and MER cards, top 5 products) plus a compact revenue chart without note pills and the ticker as a vertical feed. Opens by default on screens 600px wide or less when no tab is chosen. Nothing extra to pull.
+Third tab, #mobile: the Dashboard view laid out for an iPhone (rebuilt 13 Nov after Ryan's feedback). Yellow bar with clock and "Updated" hour, one-line ticker, revenue pace card full width with predicted and last-hour cards side by side, KPI tiles two across, then the revenue chart with a Total / Per hour toggle and short note labels (noteMini: "Email", "Spike 9am", up to 4 rows so they never overlap). Opens by default on screens 600px wide or less when no tab is chosen. Nothing extra to pull.
