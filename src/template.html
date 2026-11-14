@@ -631,13 +631,16 @@ $('p-pnote').innerHTML = `The rest of the day needs <b>${K$(M.need_rest)}</b> an
   const X = h => (h-pp[0].h)/(Math.max(1,pp[pp.length-1].h-pp[0].h))*292+4, Y = v => 42-(v-mn)/(mx-mn)*38;
   const d = pp.map((p,i)=>(i?'L':'M')+X(p.h).toFixed(1)+' '+Y(p.v).toFixed(1)).join(' ');
   $('p-path').innerHTML = `<line x1="0" x2="300" y1="${Y(M.target_day)}" y2="${Y(M.target_day)}" stroke="#fff" stroke-opacity=".7" stroke-dasharray="4 4" stroke-width="1" vector-effect="non-scaling-stroke"/><path d="${d}" fill="none" stroke="${C.y}" stroke-width="2" vector-effect="non-scaling-stroke"/>`; })();
-const LH = DONE-1;
-$('p-lh-l').textContent = `Last full hour · ${h12(LH)} to ${h12(LH+1)}`;
+// A pull at :45 or later (the hourly :55 run) reports the hour it is finishing, matching "Updated" on the hour (14 Nov 2026).
+// That hour's target and last year are taken to the same minute, so the comparison is fair.
+const LHP = M.now_m >= 45, LH = LHP ? NOW : DONE-1, lhF = LHP ? M.now_m/60 : 1;
+const upTo = h12(NOW).replace(/(am|pm)$/, ':'+String(M.now_m).padStart(2,'0')+'$1');
+$('p-lh-l').textContent = `Last hour · ${h12(LH)} to ${h12(LH+1)}`;
 $('p-lh').textContent = D$(H.total[LH]);
-$('p-lht').textContent = D$(H.target[LH]); $('p-lhl').textContent = D$(H.ly_total[LH]);
+$('p-lht').textContent = D$(H.target[LH]*lhF); $('p-lhl').textContent = D$(H.ly_total[LH]*lhF);
 const lhCvr = H.sessions[LH] ? H.cc[LH]/H.sessions[LH] : 0, lyCvr = H.ly_sessions[LH] ? H.ly_cc[LH]/H.ly_sessions[LH] : 0;
-$('p-lhn').innerHTML = `${Math.round(H.orders[LH])} orders from ${Math.round(H.sessions[LH]).toLocaleString('en-CA')} sessions, conversion ${pct(lhCvr,2)} (${pts(lhCvr,lyCvr)}). Returns posted in the hour: ${D$(-H.returns[LH])}.`;
-const lhr = H.total[LH]/(H.target[LH]||1);
+$('p-lhn').innerHTML = `${LHP ? `To ${upTo} (the last few minutes land in the next update). ` : ''}${Math.round(H.orders[LH])} orders from ${Math.round(H.sessions[LH]).toLocaleString('en-CA')} sessions, conversion ${pct(lhCvr,2)} (${pts(lhCvr,lyCvr)}). Returns posted in the hour: ${D$(-H.returns[LH])}.`;
+const lhr = H.total[LH]/((H.target[LH]*lhF)||1);
 $('p-lhc').innerHTML = lhr>=1 ? '<span class="chip good">Beat the hour target</span>' : lhr>=.85 ? '<span class="chip mid">Close to the hour target</span>' : '<span class="chip bad">Missed the hour target</span>';
 
 // ---------- KPI row (completed hours, today vs LY; grey line in each sparkline is last year)
@@ -1109,7 +1112,7 @@ document.querySelectorAll('[data-srm]').forEach(b => b.onclick = () => { srm=b.d
 
 // ticker click: jump to the Live view and open what the item is about (Ryan, 12 Nov 2026)
 function jump(go){
-  if(go==='rev'){ $('cRev').closest('.card').scrollIntoView({behavior:'smooth'}); openHour(Math.max(0, DONE-1)); return; }
+  if(go==='rev'){ $('cRev').closest('.card').scrollIntoView({behavior:'smooth'}); openHour(Math.max(0, LH)); return; }
   if(go==='funnel'){ openSplit.force = true; openSplit(3, 'dev'); return; }
   if(go==='funnel:ref'){ openSplit.force = true; openSplit(3, 'ref'); return; }
   if(go==='spend'){ spOpen = null; openSpend('google'); return; }

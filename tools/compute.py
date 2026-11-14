@@ -240,7 +240,7 @@ def utm(pack, day):
 U, UW = utm(r2['utmT'], today), (utm(r3['utmL'], ly_day) if r3.get('utmL') else utm(r2['utmW'], lw_day))
 
 # ---------- ticker: observations for the last full hour, ranked by how far they move
-lh = DONE - 1
+lh = NOW if MIN >= 45 else DONE - 1   # a pull at :45 or later reports the hour it is finishing (14 Nov 2026)
 hl = lambda h: (f"{h % 12 or 12}{'am' if h < 12 else 'pm'}")
 obs = []
 def pc(a, b): return (a / b - 1) if b else None
