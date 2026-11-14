@@ -69,3 +69,6 @@ Thumbnails are CDN links (the cloud cannot fetch cdn.shopify.com to embed them).
   same two dashed for last year. AOV per segment = (gross sales less discounts) ÷ orders, the headline AOV basis.
 - tools/pull_today.js (work-PC fallback) does not pull these yet; the page falls back to the old revenue-share card without them.
 
+
+## Mobile view (Ryan, 13 Nov 2026)
+Third tab, #mobile. Built in the page from the Live view cards (pace cards, KPI cards, spend and MER cards, top 5 products) plus a compact revenue chart without note pills and the ticker as a vertical feed. Opens by default on screens 600px wide or less when no tab is chosen. Nothing extra to pull.

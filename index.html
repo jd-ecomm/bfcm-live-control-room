@@ -320,6 +320,38 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.tlist{grid-template-columns:minmax(0,1fr)}.fsteps{grid-template-columns:repeat(2,minmax(0,1fr))}.fst:nth-child(3){padding-left:0;border-left:0}.fst .pc{font-size:34px}.ful,.agekey{grid-template-columns:repeat(2,minmax(0,1fr))}.fl{grid-template-columns:minmax(0,1fr)}
   .pc .big{font-size:54px}.kpi .v{font-size:34px}.cbox{height:280px}.tabs .fresh{margin-left:0;width:100%}.seg+.seg{margin-left:0}
   #screen{height:auto;overflow:visible}.scr{height:auto}.smain,.sbot{grid-template-columns:minmax(0,1fr);height:auto}.schart{min-height:300px}}
+/* ---------- mobile view (Ryan, 13 Nov 2026: optimised for an iPhone) */
+#mobile .mw{max-width:480px;margin:0 auto;padding:12px max(14px,env(safe-area-inset-right,0px)) 32px max(14px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:12px}
+.m-fresh{font-size:12px;color:var(--fg2);text-align:center}
+.m-fresh b{color:var(--fg)}
+.m-stack{display:flex;flex-direction:column;gap:12px}
+#mobile .card{padding:16px;min-width:0}
+#mobile .pc .big{font-size:52px}
+#mobile .pc .meta{flex-wrap:wrap;gap:6px 14px;font-size:12px}
+#mobile .pc .say{font-size:13px}
+.m-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.m-kpis .kpi{padding:12px;cursor:default}
+.m-kpis .kpi .v{font-size:34px;margin-top:6px}
+.m-kpis .kpi .d{font-size:11px}
+.m-kpis .kpi svg{height:26px;margin-top:8px}
+.m-kpis .kpi .hint{display:none}
+.m-kpis .kpi:last-child:nth-child(odd){grid-column:1 / -1}
+.m-ch-h{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.m-ch-h h3{font-size:20px;margin:0}
+.m-cbox{position:relative;height:240px;margin-top:10px}
+#mobile .legend{font-size:11px;gap:6px 12px;flex-wrap:wrap}
+.m-h{font-size:22px;margin:10px 0 0}
+#mobile #m-spend .dsp.num{font-size:38px!important}
+.m-top{display:flex;flex-direction:column;gap:8px}
+.m-top > *{min-width:0}
+.m-feed{display:flex;flex-direction:column;gap:8px}
+.m-feed .it{display:flex;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card,#141414);font-size:13px;line-height:1.35}
+.m-feed .it b{flex:none;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--fg3);min-width:64px}
+.m-feed .it img{width:36px;height:36px;object-fit:contain;border-radius:6px;background:#fff;flex:none}
+.m-feed .it.good b{color:var(--teal)} .m-feed .it.bad b{color:var(--alert)} .m-feed .it.hot b{color:var(--yellow)}
+.m-full{align-self:center;margin-top:6px}
+body.mob-on .hero{display:none}
+@media(max-width:600px){.tabs .fresh{display:none}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 <script id="cr-refresh">
@@ -330,7 +362,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
    3. Backstop: with no interaction for 3 minutes, reload anyway every 15 minutes, whatever the stamp says.
    A viewer who is mid-click gets 20 quiet seconds first. */
 (function(){
-  var VER = 'cd6861c3fa7d', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
+  var VER = '528422f0fbc1', live = /github\.io$/.test(location.hostname) && VER.indexOf('BUILD_VER') < 0;
   var lastUse = 0, pending = false, loaded = Date.now();
   ['click','keydown','wheel','touchstart','mousemove'].forEach(function(ev){ addEventListener(ev, function(){ lastUse = Date.now(); }, {passive:true}); });
   function quiet(ms){ return document.hidden || Date.now() - lastUse > ms; }
@@ -387,6 +419,7 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
 <nav class="tabs"><div class="wrap">
   <button class="pill on" id="t-live" data-view="live">Live</button>
   <button class="pill" id="t-screen" data-view="screen">Dashboard view</button>
+  <button class="pill" id="t-mob" data-view="mobile">Mobile view</button>
   <span class="fresh" id="fresh"></span>
 </div></nav>
 
@@ -477,6 +510,26 @@ body.scr-on .hero, body.scr-on .tabs{display:none}
   <div class="wrap foot" id="foot"></div>
 </main>
 
+<main id="mobile" hidden>
+  <div class="mw">
+    <div class="m-fresh" id="m-fresh"></div>
+    <div class="m-stack" id="m-pace"></div>
+    <div class="m-kpis" id="m-kpis"></div>
+    <div class="card m-chart">
+      <div class="m-ch-h"><h3 class="dsp" id="m-ct">Revenue pacing</h3><div class="seg"><button class="pill sm on" data-mrm="cum">Total</button><button class="pill sm" data-mrm="hr">Per hour</button></div></div>
+      <div class="m-cbox"><canvas id="cMob" aria-label="Total revenue by hour against target and last year"></canvas><div class="pulse" id="mpulse"><b id="mpulseT"></b></div></div>
+      <div class="legend"><span><i style="background:var(--yellow);height:4px"></i>Today</span><span><i class="dash"></i>Target</span><span><i style="background:var(--fg3)"></i>Last year</span></div>
+    </div>
+    <h2 class="dsp m-h">Spend and MER</h2>
+    <div class="m-stack" id="m-spend"></div>
+    <h2 class="dsp m-h">Top products</h2>
+    <div class="tlist m-top" id="m-top"></div>
+    <h2 class="dsp m-h">What's happening</h2>
+    <div class="m-feed" id="m-feed"></div>
+    <button class="pill m-full" data-view="live">Open the full Live view</button>
+  </div>
+</main>
+
 <main id="screen" hidden>
   <div class="scr">
     <div class="sbar">
@@ -535,6 +588,7 @@ function freshLine(){
   let nh = now.getUTCMinutes() < 2 ? now.getUTCHours() : now.getUTCHours() + 1;
   const txt = nh >= 6 && nh <= 23 ? ` · next about ${h12(nh).replace(/(am|pm)$/, ':02$1')}, updates itself` : ' · next update 6:02am, then hourly to 11pm';
   $('fresh').innerHTML = `Updated <b>${updH} PT</b>` + txt;
+  const mf = document.getElementById('m-fresh'); if(mf) mf.innerHTML = `Updated <b>${updH} PT</b>` + txt;
 }
 freshLine(); setInterval(freshLine, 60000);
 
@@ -644,7 +698,7 @@ function placePulse(ch, el, txtEl, mode){ const meta = ch.getDatasetMeta(0); con
   const raw = ch.data.datasets[0].data.slice(-1)[0]; txtEl.textContent = mode==='cum' ? `${K$(raw.y)} at ${upd}` : `${K$(raw.y)} an hour, pace so far`;
   const right = pt.x > ch.chartArea.right - 170; txtEl.style.left = right ? 'auto' : '18px'; txtEl.style.right = right ? '18px' : 'auto'; }
 const FS = k => { const u = Math.min(innerWidth/100, innerHeight*1.7/100); return Math.max(10, Math.round(u*k)); };
-function revChart(canvas, mode, big, pulseEl, pulseT){
+function revChart(canvas, mode, big, pulseEl, pulseT, lite){   // lite: no note pills (mobile view)
   // notes live outside the plot area, where Chart.js ignores clicks, so listen on the canvas itself (once per canvas)
   if(!canvas.$noteEv){ canvas.$noteEv = true;
     const at = ev => { const r = canvas.getBoundingClientRect(); return {x:ev.clientX-r.left, y:ev.clientY-r.top}; };
@@ -654,10 +708,10 @@ function revChart(canvas, mode, big, pulseEl, pulseT){
         const h = Math.max(0, Math.min(NOW, Math.floor(ch.scales.x.getValueForPixel(e.x)))); openHour(h); } });
     canvas.addEventListener('mousemove', ev => { const ch = Chart.getChart(canvas); if(!ch) return; const e = at(ev); canvas.style.cursor = (ch.$pills||[]).some(q => e.x>=q.x && e.x<=q.x+q.w && e.y>=q.y && e.y<=q.y+q.h) ? 'pointer' : 'default'; }); }
   return new Chart(canvas, {type:'line', data:{datasets:revDatasets(mode, big)}, options:{responsive:true, maintainAspectRatio:false, parsing:false, animation:{duration:big?0:600},
-    interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:noteBand(M.notes, big?FS(.62):10.5), right:big?20:12}},
+    interaction:{mode:'nearest', axis:'x', intersect:false}, layout:{padding:{top:lite?8:noteBand(M.notes, big?FS(.62):10.5), right:big?20:12}},
     scales:{x:xS(big?FS(.78):11), y:Object.assign(yS(big?FS(.78):11), {grace:'8%'})},
 
-    plugins:{notes:{list:M.notes, size:big?FS(.62):10.5}, nowshade:{x:NOWX}, tooltip:{enabled:!big, callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum' ? 'By '+(x%1? upd : hl(Math.round(x))) : h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)+(it.raw.proj?' (pace, hour in progress)':'')}}}},
+    plugins:{notes:{list:lite?null:M.notes, size:big?FS(.62):10.5}, nowshade:{x:NOWX}, tooltip:{enabled:!big, callbacks:{title:it=>{const x=it[0].parsed.x; return mode==='cum' ? 'By '+(x%1? upd : hl(Math.round(x))) : h12(Math.floor(x))+' to '+h12(Math.floor(x)+1);}, label:it=>' '+it.dataset.label+': '+D$(it.parsed.y)+(it.raw.proj?' (pace, hour in progress)':'')}}}},
     plugins:[{id:'pulse', afterRender: c => placePulse(c, pulseEl, pulseT, mode)}]});
 }
 let rm='cum', cRev = revChart($('cRev'), rm, false, $('pulse'), $('pulseT')); window.cRevRef = cRev;
@@ -1045,12 +1099,29 @@ document.addEventListener('keydown', e => { if(e.key!=='Escape') return; if(selH
 // tighten the display font's wide comma
 function commas(){ document.querySelectorAll('.dsp').forEach(el => { if(el.closest('svg')) return; el.innerHTML = el.innerHTML.replace(/(\d),(\d)/g,'$1<span class="cm">,</span>$2'); }); }
 // ---------- views
-function view(v){ const s = v==='screen'; $('live').hidden = s; $('screen').hidden = !s; document.body.classList.toggle('scr-on', s);
-  $('t-live').classList.toggle('on',!s); $('t-screen').classList.toggle('on',s);
-  if(s){ screen(); commas(); } else { clearInterval(tickT); clearInterval(rot); } }
+function view(v){ const s = v==='screen', m = v==='mobile';
+  $('live').hidden = s || m; $('screen').hidden = !s; $('mobile').hidden = !m; document.body.classList.toggle('scr-on', s); document.body.classList.toggle('mob-on', m);
+  $('t-live').classList.toggle('on',!s && !m); $('t-screen').classList.toggle('on',s); $('t-mob').classList.toggle('on',m);
+  if(s){ screen(); commas(); } else { clearInterval(tickT); clearInterval(rot); }
+  if(m){ mobile(); commas(); window.scrollTo(0,0); } }
+// ---------- mobile view: the same cards as the Live view, laid out for a phone (Ryan, 13 Nov 2026)
+let mChart, mrm = 'cum';
+function mobile(){
+  const strip = n => { n.removeAttribute('data-k'); n.removeAttribute('id'); n.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id')); n.removeAttribute('role'); n.removeAttribute('tabindex'); n.style.cursor = 'default'; n.classList.remove('on'); return n; };
+  $('m-fresh').innerHTML = $('fresh').innerHTML;
+  $('m-pace').innerHTML = ''; document.querySelectorAll('#live .grid3 > .card').forEach(c => $('m-pace').appendChild(strip(c.cloneNode(true))));
+  $('m-kpis').innerHTML = ''; document.querySelectorAll('#kpis > .kpi').forEach(c => $('m-kpis').appendChild(strip(c.cloneNode(true))));
+  $('m-spend').innerHTML = ''; document.querySelectorAll('#live .spend .side > .card').forEach(c => $('m-spend').appendChild(strip(c.cloneNode(true))));
+  $('m-top').innerHTML = ''; [...document.querySelectorAll('#top > *')].slice(0, 5).forEach(c => $('m-top').appendChild(strip(c.cloneNode(true))));
+  $('m-feed').innerHTML = (M.ticker||[]).map(t=>`<div class="it ${t.tone}"><b>${esc(t.k)}</b>${t.img?`<img src="${t.img}" alt="">`:''}<span>${esc(t.txt)}</span></div>`).join('') || '<div class="it">Nothing new this hour.</div>';
+  drawMobChart();
+}
+function drawMobChart(){ if(mChart) mChart.destroy(); mChart = revChart($('cMob'), mrm, false, $('mpulse'), $('mpulseT'), true);
+  document.querySelectorAll('[data-mrm]').forEach(x=>x.classList.toggle('on', x.dataset.mrm===mrm)); $('m-ct').textContent = mrm==='cum' ? 'Revenue pacing' : 'Revenue per hour'; }
+document.querySelectorAll('[data-mrm]').forEach(b => b.onclick = () => { mrm = b.dataset.mrm; drawMobChart(); });
 document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => { location.hash = b.dataset.view; });
 window.addEventListener('hashchange', () => view(location.hash.slice(1)));
-view(location.hash.slice(1)||'live');
+view(location.hash.slice(1) || (window.matchMedia('(max-width:600px)').matches ? 'mobile' : 'live'));
 commas();
 setInterval(() => { if(!$('screen').hidden) clock(); }, 20000);
 // Self-refresh now lives in its own script block at the top of the page (see 'cr-refresh'), so it keeps working even if this script fails.
